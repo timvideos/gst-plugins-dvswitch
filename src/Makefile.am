@@ -1,9 +1,9 @@
 # Note: plugindir is set in configure
 
 ##############################################################################
-# TODO: change libgstplugin.la to something else, e.g. libmysomething.la     #
+# TODO: change libgstdvswitch.la to something else, e.g. libmysomething.la     #
 ##############################################################################
-plugin_LTLIBRARIES = libgstplugin.la
+plugin_LTLIBRARIES = libgstdvswitch.la
 
 ##############################################################################
 # TODO: for the next set of variables, name the prefix if you named the .la, #
@@ -14,13 +14,13 @@ plugin_LTLIBRARIES = libgstplugin.la
 ##############################################################################
 
 # sources used to compile this plug-in
-libgstplugin_la_SOURCES = gstdvswitchsrc.c gstdvswitchsrc.h
+libgstdvswitch_la_SOURCES = gstdvswitchsrc.c gstdvswitchsrc.h
 
 # compiler and linker flags used to compile this plugin, set in configure.ac
-libgstplugin_la_CFLAGS = $(GST_CFLAGS)
-libgstplugin_la_LIBADD = $(GST_LIBS)
-libgstplugin_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
-libgstplugin_la_LIBTOOLFLAGS = --tag=disable-static
+libgstdvswitch_la_CFLAGS = $(GST_CFLAGS)
+libgstdvswitch_la_LIBADD = $(GST_LIBS)
+libgstdvswitch_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
+libgstdvswitch_la_LIBTOOLFLAGS = --tag=disable-static
 
 # headers we need but don't want installed
 noinst_HEADERS = gstdvswitchsrc.h

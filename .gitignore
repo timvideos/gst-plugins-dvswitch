@@ -13,4 +13,7 @@ missing
 stamp-*
 my-plugin-*.tar.*
 *~
-
+Makefile
+.deps
+.libs
+*.l[oa]
