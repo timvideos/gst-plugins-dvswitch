@@ -1,0 +1,2 @@
+version=3
+https://github.com/timsvideo/gst-dvswitch/tags .*/tarball/v(\d[\d\.]+)

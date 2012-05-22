@@ -1,0 +1,5 @@
+gstreamer0.10-dvswitch (0.0.1-1) unstable; urgency=low
+
+  * Initial release (Closes: #673105)
+
+ -- James Bromberger <jeb@debian.org>  Thu, 17 May 2012 20:50:00 +0800
