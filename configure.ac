@@ -46,6 +46,7 @@ dnl etc.
 PKG_CHECK_MODULES(GST, [
   gstreamer-0.10 >= $GST_REQUIRED
   gstreamer-base-0.10 >= $GST_REQUIRED
+  gstreamer-pbutils-0.10 >= $GSTPB_REQUIRED
 ], [
   AC_SUBST(GST_CFLAGS)
   AC_SUBST(GST_LIBS)
