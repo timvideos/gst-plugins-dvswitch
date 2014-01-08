@@ -56,8 +56,8 @@
 
 #include "gstdvswitchsrc.h"
 
-GST_DEBUG_CATEGORY_STATIC (gst_dvswitch_src_debug);
-#define GST_CAT_DEFAULT gst_dvswitch_src_debug
+GST_DEBUG_CATEGORY_EXTERN (gst_dvswitch_debug);
+#define GST_CAT_DEFAULT gst_dvswitch_debug
 
 #define DVSWITCH_DEFAULT_HOSTNAME       "127.0.0.1"
 #define DVSWITCH_DEFAULT_PORT           5000
@@ -134,8 +134,6 @@ static gboolean gst_dvswitch_src_stop (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock_stop (GstBaseSrc * bsrc);
 static GstCaps *gst_dvswitch_src_get_caps (GstBaseSrc * src);
-
-static GstFlowReturn gst_dvswitch_src_chain (GstPad * pad, GstBuffer * buf);
 
 static void gst_dvswitch_src_finalize (GObject * object);
 void gst_dvswitch_uri_init (GstDvswitchUri * uri, const gchar * host, gint port);
@@ -638,24 +636,6 @@ gst_dvswitch_src_get_caps (GstBaseSrc * src)
     return gst_caps_new_any ();
 }
 
-/* entry point to initialize the plug-in
- * initialize the plug-in itself
- * register the element factories and other features
- */
-static gboolean
-dvswitchsrc_init (GstPlugin * dvswitchsrc)
-{
-  /* debug category for fltering log messages
-   *
-   * exchange the string 'Template dvswitchsrc' with your description
-   */
-  GST_DEBUG_CATEGORY_INIT (gst_dvswitch_src_debug, "dvswitchsrc",
-      0, "Template dvswitchsrc");
-
-  return gst_element_register (dvswitchsrc, "dvswitchsrc", GST_RANK_NONE,
-      GST_TYPE_DVSWITCHSRC);
-}
-
 static gboolean
 gst_dvswitch_src_set_uri (GstDvswitchSrc * src, const gchar * uri)
 {
@@ -844,27 +824,3 @@ gst_dvswitch_uri_free (GstDvswitchUri * uri)
   uri->port = -1;
 }
 
-/* PACKAGE: this is usually set by autotools depending on some _INIT macro
- * in configure.ac and then written into and defined in config.h, but we can
- * just set it ourselves here in case someone doesn't use autotools to
- * compile this code. GST_PLUGIN_DEFINE needs PACKAGE to be defined.
- */
-#ifndef PACKAGE
-#define PACKAGE "dvswitchsrc"
-#endif
-
-/* gstreamer looks for this structure to register dvswitchsrcs
- *
- * exchange the string 'Template dvswitchsrc' with your dvswitchsrc description
- */
-GST_PLUGIN_DEFINE (
-    GST_VERSION_MAJOR,
-    GST_VERSION_MINOR,
-    "dvswitchsrc",
-    "Reads DIF/DV stream from dvswitch server.",
-    dvswitchsrc_init,
-    VERSION,
-    "LGPL",
-    PACKAGE_NAME,
-    "https://github.com/micolous/gst-dvswitch/"
-)

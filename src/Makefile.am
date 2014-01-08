@@ -14,7 +14,7 @@ plugin_LTLIBRARIES = libgstdvswitch.la
 ##############################################################################
 
 # sources used to compile this plug-in
-libgstdvswitch_la_SOURCES = gstdvswitchsrc.c gstdvswitchsrc.h
+libgstdvswitch_la_SOURCES = gstdvswitchsrc.c gstdvswitchsrc.h gstdvswitchsink.c plugin.c
 
 # compiler and linker flags used to compile this plugin, set in configure.ac
 libgstdvswitch_la_CFLAGS = $(GST_CFLAGS)
@@ -23,4 +23,4 @@ libgstdvswitch_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
 libgstdvswitch_la_LIBTOOLFLAGS = --tag=disable-static
 
 # headers we need but don't want installed
-noinst_HEADERS = gstdvswitchsrc.h
+noinst_HEADERS = gstdvswitchsrc.h gstdvswitchsink.h
