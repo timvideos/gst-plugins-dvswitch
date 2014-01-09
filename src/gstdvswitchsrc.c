@@ -142,6 +142,7 @@ static gboolean gst_dvswitch_src_set_uri (GstDvswitchSrc * src, const gchar * ur
 gchar * gst_dvswitch_uri_string (GstDvswitchUri * uri);
 void gst_dvswitch_uri_free (GstDvswitchUri * uri);
 int gst_dvswitch_uri_update (GstDvswitchUri * uri, const gchar * host, gint port);
+static const gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
 
 /* GObject vmethod implementations */
 
@@ -303,7 +304,7 @@ gst_dvswitch_src_get_property (GObject * object, guint prop_id,
       g_value_set_string (value, filter->uri.host);
       break;
     case PROP_PORT:
-      g_value_set_uint (value, filter->uri.port);
+      g_value_set_int (value, filter->uri.port);
       break;
     case PROP_BUFFER_SIZE:
       g_value_set_int (value, filter->buffer_size);
@@ -311,7 +312,9 @@ gst_dvswitch_src_get_property (GObject * object, guint prop_id,
     case PROP_TIMEOUT:
       g_value_set_uint64 (value, filter->timeout);
       break;
-      
+    case PROP_URI:
+      g_value_set_string (value, gst_dvswitch_src_uri_get_uri(GST_URI_HANDLER(filter)));
+      break;  
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
