@@ -1,46 +1,65 @@
-# gst-dvswitch #
+# gst-plugins-dvswitch
 
-`gst-dvswitch` is a GStreamer plugin for acquiring a DIF (DV) stream from a
-dvswitch server.
+`gst-plugins-dvswitch` is a GStreamer plugin for talking to DVSwitch server.
+Both acquiring and sending a DIF (DV) stream.
 
-The plugin does not require dvswitch to be installed on the same machine.
+The plugin does not require DVSwitch to be installed on the same machine.
 
-This plugin borrows code quite heavily from udpsrc.
+ * gstreamer - http://gstreamer.freedesktop.org/
+ * DVSwitch - http://dvswitch.alioth.debian.org/wiki/
 
-# Building #
+# Building
 
-This contains the usual autotools-based build.  Use `./autogen.sh` to create
-`./configure` and related scripts.
+This contains the usual autotools-based build. 
 
-# How to use #
+Use `./autogen.sh` to create `./configure` and related scripts.
 
-You can use it from the commandline like so:
+# How to use
 
-`gst-launch-0.10 -v dvswitchsrc hostname=127.0.0.1 port=5000 ! dvdemux ! dvdec ! autovideosink`
+To get video from DVswitch, you can use it from the command-line like so:
 
-If a hostname and port are not specified, it will default to `127.0.0.1:5000`.
+```
+gst-launch-0.10 -v \
+  dvswitchsrc hostname=127.0.0.1 port=5000 ! \
+  dvdemux ! \
+  dvdec ! \
+  autovideosink
+```
+
+To send video to a DVswitch, you can use it from the command-line like so;
+
+```
+gst-launch-0.10 -v \
+  videotestsrc is-live=true ! \
+  ffmpegcolorspace ! \
+  ffenc_dvvideo ! \
+  ffmux_dv ! \
+  dvswitchsink host=127.0.0.1 port=5000
+```
 
 The source also contains a URI handler, so you can open it with something like
 `totem` by selecting `File` -> `Open Location...` and entering a URI:
 
 `dvswitch://127.0.0.1:5000`
 
-You could also use this with flumotion.
+### Converting video to DV
 
-# `dvswitch` protocol #
+Actually converting video to DV is slightly tricky and DVSwitch requires all
+inputs to have the *exact* same input format, while gstreamer is happy to send
+anything.
 
-dvswitch's protocol is documented in `protocol.h` (in the dvswitch sources).  How
+See https://github.com/timvideos/dvsource-v4l2-other for the full pipelines.
+
+# DVSwitch protocol
+
+DVSwitch's protocol is documented in `protocol.h` (in the DVSwitch sources).  How
 it works is by sending one of the following four character "greetings" to the
 server, at which point you can start sending / reciving DV frames.
 
-# Hacking #
+# Hacking
 
-Development is done out of my github repository: https://github.com/micolous/gst-dvswitch/
+Development is done out the github repository:
+ https://github.com/timvideos/gst-plugins-dvswitch/
 
-## TODO ##
-
-* Fix Win32 support.
-* Handle disconnects better.
-* Documentation.
-* Clean out remaining UDP-specific code.
-
+Issues can be reported at:
+ https://github.com/timvideos/dvsource-v4l2-other/issues
