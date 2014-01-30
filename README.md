@@ -14,6 +14,17 @@ This contains the usual autotools-based build.
 
 Use `./autogen.sh` to create `./configure` and related scripts.
 
+### Building Debian / Ubuntu Package
+
+```
+git clone git://github.com/timvideos/gst-plugins-dvswitch.git
+cd gst-plugins-dvswitch
+dpkg-checkbuilddeps
+# Install any missing build dependencies
+dpkg-buildpackage -b
+dpkg --install ../gstreamer0.10-dvswitch*.deb
+```
+
 # How to use
 
 To get video from DVswitch, you can use it from the command-line like so:
