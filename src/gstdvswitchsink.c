@@ -82,7 +82,7 @@ gst_dvswitch_sink_base_init (gpointer klass)
 {
   GstElementClass *eklass = GST_ELEMENT_CLASS (klass);
 
-  gst_element_class_add_static_pad_template (eklass, &sink_template);
+  gst_element_class_add_pad_template(eklass, gst_static_pad_template_get(&sink_template));
   gst_element_class_set_details_simple (eklass, "DVswitch video sink",
       "Sink/Video",
       "Sink which uses tcpclientsink to stream to a dvswitch server",
@@ -127,7 +127,7 @@ static void
 gst_dvswitch_sink_dispose (GstDVSwitchSink * sink)
 {
   if (sink->probe_id) {
-    gst_pad_remove_buffer_probe(sink->pad, sink->probe_id);
+    gst_pad_remove_probe(sink->pad, sink->probe_id);
     sink->probe_id = 0;
   }
 
@@ -155,7 +155,7 @@ gst_dvswitch_sink_init (GstDVSwitchSink * sink)
 
   gst_dvswitch_sink_create_sink(sink);
 
-  sink->probe_id = gst_pad_add_buffer_probe(sink->pad, (GCallback)gst_dvswitch_sink_probe, sink);
+  sink->probe_id = gst_pad_add_probe(sink->pad, GST_PAD_PROBE_TYPE_BUFFER, (GstPadProbeCallback)gst_dvswitch_sink_probe, sink, NULL);
 }
 
 // sporked from dvswitch/src/protocol.h
@@ -173,10 +173,9 @@ gst_dvswitch_sink_probe(GstPad *pad, GstBuffer *buf, GstDVSwitchSink *sink)
     GstPad *targetpad;
 
     GST_DEBUG_OBJECT (sink, "Sending DVSwitch greeting packet");
-    buf = gst_buffer_new_and_alloc(GREETING_SIZE);
-    memcpy(GST_BUFFER_DATA(buf), GREETING_RAW_SOURCE, GREETING_SIZE);
+    buf = gst_buffer_new_wrapped(&GREETING_RAW_SOURCE, GREETING_SIZE);
 
-    targetpad = gst_element_get_pad (sink->kid, "sink");
+    targetpad = gst_element_get_static_pad (sink->kid, "sink");
     gst_pad_chain(targetpad, buf);
     gst_object_unref(targetpad);
 
