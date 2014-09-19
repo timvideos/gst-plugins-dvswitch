@@ -47,5 +47,5 @@ GST_PLUGIN_DEFINE (
     VERSION,
     "LGPL",
     PACKAGE_NAME,
-    "https://github.com/micolous/gst-dvswitch/"
+    "https://github.com/timvideos/gst-plugins-dvswitch"
 )
