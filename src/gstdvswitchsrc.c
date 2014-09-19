@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA  02110-1301  USA
  */
 
@@ -48,8 +48,6 @@
 #include <io.h>
 #endif
 
-#include <gst/netbuffer/gstnetbuffer.h>
-
 #ifdef HAVE_FIONREAD_IN_SYS_FILIO
 #include <sys/filio.h>
 #endif
@@ -73,8 +71,8 @@ G_STMT_START { \
   tcpctx->sockfd = DVSWITCH_DEFAULT_SOCKFD; \
   tcpctx->sock.fd = DVSWITCH_DEFAULT_SOCK; \
 } G_STMT_END
-  
-  
+
+
 /* Filter signals and args */
 enum
 {
@@ -90,7 +88,7 @@ enum
   PROP_URI,
   PROP_BUFFER_SIZE,
   PROP_TIMEOUT,
-  
+
   PROP_LAST
 };
 
@@ -104,7 +102,7 @@ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS ("ANY")
     );
-    
+
 static void gst_dvswitch_src_uri_handler_init (gpointer g_iface, gpointer iface_data);
 
 
@@ -120,14 +118,14 @@ _do_init (GType type)
   g_type_add_interface_static (type, GST_TYPE_URI_HANDLER, &urihandler_info);
 }
 
-GST_BOILERPLATE_FULL (GstDvswitchSrc, gst_dvswitch_src, GstPushSrc,
-    GST_TYPE_PUSH_SRC, _do_init);
+G_DEFINE_TYPE (GstDvswitchSrc, gst_dvswitch_src,
+    GST_TYPE_PUSH_SRC);
 
 static void gst_dvswitch_src_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec);
 static void gst_dvswitch_src_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
-    
+
 static GstFlowReturn gst_dvswitch_src_create (GstPushSrc * psrc, GstBuffer ** buf);
 static gboolean gst_dvswitch_src_start (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_stop (GstBaseSrc * bsrc);
@@ -181,26 +179,26 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
   g_object_class_install_property (gobject_class, PROP_HOSTNAME,
       g_param_spec_string ("hostname", "Hostname", "Hostname of dvswitch server.",
           DVSWITCH_DEFAULT_HOSTNAME, G_PARAM_READWRITE));
-   
+
   g_object_class_install_property (gobject_class, PROP_PORT,
       g_param_spec_int ("port", "Port", "Port of dvswitch server.", 0, 65535,
           DVSWITCH_DEFAULT_PORT, G_PARAM_READWRITE));
-          
+
   g_object_class_install_property (gobject_class, PROP_URI,
       g_param_spec_string("uri", "URI", "URI in the form of dvswitch://ip:port",
-      	DVSWITCH_DEFAULT_URI, G_PARAM_READWRITE));
+        DVSWITCH_DEFAULT_URI, G_PARAM_READWRITE));
 
   g_object_class_install_property (gobject_class, PROP_BUFFER_SIZE,
       g_param_spec_int ("buffer-size", "Buffer Size",
           "Size of the kernel receive buffer in bytes, 0=default", 0, G_MAXINT,
           DVSWITCH_DEFAULT_BUFFER_SIZE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-          
+
   g_object_class_install_property (gobject_class, PROP_TIMEOUT,
       g_param_spec_uint64 ("timeout", "Timeout",
           "Post a message after timeout microseconds (0 = disabled)", 0,
           G_MAXUINT64, DVSWITCH_DEFAULT_TIMEOUT,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-          
+
   gstbasesrc_class->start = gst_dvswitch_src_start;
   gstbasesrc_class->stop = gst_dvswitch_src_stop;
   gstbasesrc_class->unlock = gst_dvswitch_src_unlock;
@@ -215,8 +213,7 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
  * initialize instance structure
  */
 static void
-gst_dvswitch_src_init (GstDvswitchSrc * filter,
-    GstDvswitchSrcClass * gclass)
+gst_dvswitch_src_init (GstDvswitchSrc * filter)
 {
 /*
   filter->srcpad = gst_pad_new_from_static_template (&src_factory, "src");
@@ -225,7 +222,7 @@ gst_dvswitch_src_init (GstDvswitchSrc * filter,
 
   gst_element_add_pad (GST_ELEMENT (filter), filter->srcpad);
   */
-  
+
   gst_dvswitch_uri_init(&filter->uri, DVSWITCH_DEFAULT_HOSTNAME, DVSWITCH_DEFAULT_PORT);
 /*  filter->hostname = DVSWITCH_DEFAULT_HOSTNAME;
   filter->port = DVSWITCH_DEFAULT_PORT;
@@ -237,7 +234,7 @@ gst_dvswitch_src_init (GstDvswitchSrc * filter,
   /* make basesrc set timestamps on outgoing buffers based on the running_time
    * when they were captured */
   gst_base_src_set_do_timestamp (GST_BASE_SRC (filter), TRUE);
-  
+
 }
 
 static void
@@ -255,7 +252,7 @@ gst_dvswitch_src_finalize (GObject * object)
 
   WSA_CLEANUP (object);
 
-  G_OBJECT_CLASS (parent_class)->finalize (object);
+  G_OBJECT_CLASS (gst_dvswitch_src_parent_class)->finalize (object);
 }
 
 
@@ -270,17 +267,17 @@ gst_dvswitch_src_set_property (GObject * object, guint prop_id,
     case PROP_HOSTNAME:
       //filter->hostname = g_value_dup_string (value);
       if ((hostname = g_value_get_string (value)))
-      	gst_dvswitch_uri_update(&filter->uri, hostname, -1);
-     	else
-     		gst_dvswitch_uri_update(&filter->uri, DVSWITCH_DEFAULT_HOSTNAME, -1);
+        gst_dvswitch_uri_update(&filter->uri, hostname, -1);
+        else
+            gst_dvswitch_uri_update(&filter->uri, DVSWITCH_DEFAULT_HOSTNAME, -1);
       break;
     case PROP_URI:
-    	gst_dvswitch_src_set_uri(filter, g_value_get_string(value));
-    	break;
+        gst_dvswitch_src_set_uri(filter, g_value_get_string(value));
+        break;
     case PROP_PORT:
-    	//filter->port = g_value_get_uint (value);
-    	gst_dvswitch_uri_update(&filter->uri, NULL, g_value_get_int(value));
-    	break;
+        //filter->port = g_value_get_uint (value);
+        gst_dvswitch_uri_update(&filter->uri, NULL, g_value_get_int(value));
+        break;
     case PROP_BUFFER_SIZE:
       filter->buffer_size = g_value_get_int (value);
       break;
@@ -314,7 +311,7 @@ gst_dvswitch_src_get_property (GObject * object, guint prop_id,
       break;
     case PROP_URI:
       g_value_set_string (value, gst_dvswitch_src_uri_get_uri(GST_URI_HANDLER(filter)));
-      break;  
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -455,12 +452,12 @@ no_select:
       break;
   }
   GST_LOG_OBJECT (dvswitchsrc, "read %d bytes", (int) readsize);
-  
-  outbuf = gst_buffer_new ();
-  GST_BUFFER_MALLOCDATA (outbuf) = pktdata;
 
-  GST_BUFFER_DATA (outbuf) = pktdata;
-  GST_BUFFER_SIZE (outbuf) = ret;
+  outbuf = gst_buffer_new ();
+  GstMemory* mem = gst_memory_new_wrapped(GST_MEMORY_FLAG_READONLY | GST_MEMORY_FLAG_NO_SHARE | GST_MEMORY_FLAG_PHYSICALLY_CONTIGUOUS,
+    pktdata, ret, 0, ret, NULL, NULL);
+  gst_buffer_replace_memory(outbuf, 0, mem);
+  // do I need to free mem now? How?
 
   *buf = outbuf;
 
@@ -476,7 +473,7 @@ select_error:
 stopped:
   {
     GST_DEBUG ("stop called");
-    return GST_FLOW_WRONG_STATE;
+    return GST_FLOW_FLUSHING;
   }
 ioctl_failed:
   {
@@ -506,40 +503,40 @@ gst_dvswitch_src_start (GstBaseSrc * bsrc)
   GstDvswitchSrc *src;
 
   src = GST_DVSWITCHSRC (bsrc);
-  
-  
-	struct addrinfo addr_hints = {
-		.ai_family =   AF_UNSPEC,
-		.ai_socktype = SOCK_STREAM,
-		.ai_flags =    AI_ADDRCONFIG
-	};
-	struct addrinfo * addr;
-	int error;
-	
-	char port[NI_MAXSERV];
-	memset(port, 0, sizeof(port));
-	g_snprintf(port, sizeof(port) - 1, "%d", src->uri.port);
-	port[sizeof(port)-1] = '\0';
-	
-	if ((error = getaddrinfo(src->uri.host, port, &addr_hints, &addr)))
-		goto getaddrinfo_error;
-	
 
-	// FIXME: this should probably try other addresses too, not only the first.
-	src->sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-	if (src->sockfd < 0)
-		goto no_socket;
-		
-	if (connect(src->sockfd, addr->ai_addr, addr->ai_addrlen) != 0)
-		goto connect_error;
-	
-	freeaddrinfo(addr);
-	
-	src->sock.fd = src->sockfd;
-	
-	// send command to tell dvswitch to start dumping frames at us
-	if (write(src->sockfd, GREETING_RAW_SINK, GREETING_SIZE) != GREETING_SIZE)
-		goto write_error;
+
+    struct addrinfo addr_hints = {
+        .ai_family =   AF_UNSPEC,
+        .ai_socktype = SOCK_STREAM,
+        .ai_flags =    AI_ADDRCONFIG
+    };
+    struct addrinfo * addr;
+    int error;
+
+    char port[NI_MAXSERV];
+    memset(port, 0, sizeof(port));
+    g_snprintf(port, sizeof(port) - 1, "%d", src->uri.port);
+    port[sizeof(port)-1] = '\0';
+
+    if ((error = getaddrinfo(src->uri.host, port, &addr_hints, &addr)))
+        goto getaddrinfo_error;
+
+
+    // FIXME: this should probably try other addresses too, not only the first.
+    src->sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+    if (src->sockfd < 0)
+        goto no_socket;
+
+    if (connect(src->sockfd, addr->ai_addr, addr->ai_addrlen) != 0)
+        goto connect_error;
+
+    freeaddrinfo(addr);
+
+    src->sock.fd = src->sockfd;
+
+    // send command to tell dvswitch to start dumping frames at us
+    if (write(src->sockfd, GREETING_RAW_SINK, GREETING_SIZE) != GREETING_SIZE)
+        goto write_error;
 
   if ((src->fdset = gst_poll_new (TRUE)) == NULL)
     goto no_fdset;

@@ -70,7 +70,7 @@ static void gst_dvswitch_sink_set_property (GObject * object, guint prop_id,
 static void gst_dvswitch_sink_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 
-GST_BOILERPLATE (GstDVSwitchSink, gst_dvswitch_sink, GstBin, GST_TYPE_BIN);
+G_DEFINE_TYPE (GstDVSwitchSink, gst_dvswitch_sink, GST_TYPE_BIN);
 
 static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
@@ -131,7 +131,7 @@ gst_dvswitch_sink_dispose (GstDVSwitchSink * sink)
     sink->probe_id = 0;
   }
 
-  G_OBJECT_CLASS (parent_class)->dispose ((GObject *) sink);
+  G_OBJECT_CLASS (gst_dvswitch_sink_parent_class)->dispose ((GObject *) sink);
 }
 
 static gboolean gst_dvswitch_sink_create_sink(GstDVSwitchSink * sink);
@@ -139,7 +139,7 @@ static gboolean
 gst_dvswitch_sink_probe(GstPad *pad, GstBuffer *buf, GstDVSwitchSink *sink);
 
 static void
-gst_dvswitch_sink_init (GstDVSwitchSink * sink, GstDVSwitchSinkClass * g_class)
+gst_dvswitch_sink_init (GstDVSwitchSink * sink)
 {
   GstPadTemplate *t = gst_static_pad_template_get (&sink_template);
 
@@ -151,7 +151,7 @@ gst_dvswitch_sink_init (GstDVSwitchSink * sink, GstDVSwitchSinkClass * g_class)
   sink->sync = DEFAULT_SYNC;
 
   /* mark as sink */
-  GST_OBJECT_FLAG_SET (sink, GST_ELEMENT_IS_SINK);
+  GST_OBJECT_FLAG_SET (sink, GST_ELEMENT_FLAG_SINK);
 
   gst_dvswitch_sink_create_sink(sink);
 
@@ -244,7 +244,7 @@ gst_dvswitch_sink_change_state (GstElement * element,
       break;
   }
 
-  ret = GST_ELEMENT_CLASS (parent_class)->change_state (element, transition);
+  ret = GST_ELEMENT_CLASS (gst_dvswitch_sink_parent_class)->change_state (element, transition);
 
   switch (transition) {
     case GST_STATE_CHANGE_READY_TO_NULL:
