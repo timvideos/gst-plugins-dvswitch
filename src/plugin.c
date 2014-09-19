@@ -41,7 +41,7 @@ dvswitch_init (GstPlugin * dvswitch)
 GST_PLUGIN_DEFINE (
     GST_VERSION_MAJOR,
     GST_VERSION_MINOR,
-    "dvswitch",
+    dvswitch,
     "Reads/Writes DIF/DV stream from/to dvswitch server.",
     dvswitch_init,
     VERSION,

@@ -78,22 +78,17 @@ static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_STATIC_CAPS("video/x-dv,systemstream=(boolean)true"));
 
 static void
-gst_dvswitch_sink_base_init (gpointer klass)
-{
-  GstElementClass *eklass = GST_ELEMENT_CLASS (klass);
-
-  gst_element_class_add_pad_template(eklass, gst_static_pad_template_get(&sink_template));
-  gst_element_class_set_details_simple (eklass, "DVswitch video sink",
-      "Sink/Video",
-      "Sink which uses tcpclientsink to stream to a dvswitch server",
-      "Jan Schmidt <jan@centricular.com>");
-}
-
-static void
 gst_dvswitch_sink_class_init (GstDVSwitchSinkClass * klass)
 {
   GObjectClass *gobject_class;
   GstElementClass *eklass = GST_ELEMENT_CLASS (klass);
+
+  gst_element_class_add_pad_template(eklass, gst_static_pad_template_get(&sink_template));
+  gst_element_class_set_details_simple (eklass,
+      "DVSwitch video sink",
+      "Sink/Video",
+      "Sink which uses tcpclientsink to stream to a dvswitch server",
+      "Jan Schmidt <jan@centricular.com>");
 
   gobject_class = G_OBJECT_CLASS (klass);
   gobject_class->dispose = (GObjectFinalizeFunc) gst_dvswitch_sink_dispose;
