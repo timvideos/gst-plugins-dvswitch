@@ -10,6 +10,9 @@ GSTPB_0_10_REQUIRED=0.10.16
 GST_1_0_REQUIRED=1.2.0
 GSTPB_1_0_REQUIRED=1.2.0
 
+AC_ARG_ENABLE([gst_1_0], AS_HELP_STRING([--disable-gst_1_0],
+  [Disable the usage of GStreamer 1.0, building against GStreamer 0.10 if installed]))
+
 AC_CONFIG_SRCDIR([src/gstdvswitchsrc.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -46,16 +49,8 @@ dnl for libgstrtp-1.0: gstreamer-rtp-1.0 >= $GST_REQUIRED
 dnl for libgstrtsp-1.0: gstreamer-rtsp-1.0 >= $GST_REQUIRED
 dnl etc.
 
-dnl Check for gstreamer 1.0. If not found, check for gstreamer 0.10. If none found fail
-PKG_CHECK_MODULES([GST], [
-  gstreamer-1.0 >= $GST_1_0_REQUIRED
-  gstreamer-base-1.0 >= $GST_1_0_REQUIRED
-  gstreamer-pbutils-1.0 >= $GSTPB_1_0_REQUIRED
-], [
-  AC_SUBST(GST_CFLAGS)
-  AC_SUBST(GST_LIBS)
-], [
-  AC_MSG_WARN([GStreamer 1.0 not found. Checking for GStreamer 0.10])
+AS_IF([test "x$enable_gst_1_0" == "xno"], [
+  AC_MSG_WARN([GStreamer 1.0 forcefully disabled! Checking for GStreamer 0.10!])
   PKG_CHECK_MODULES([GST], [
     gstreamer-0.10 >= $GST_0_10_REQUIRED
     gstreamer-base-0.10 >= $GST_0_10_REQUIRED
@@ -67,9 +62,38 @@ PKG_CHECK_MODULES([GST], [
     AC_MSG_ERROR([
         You need to install or upgrade the GStreamer development
         packages on your system. On debian-based systems these are
-        libgstreamer*-dev and libgstreamer-plugins-base*-dev.
-        on RPM-based systems gstreamer*-devel, libgstreamer*-devel
+        libgstreamer0.10-dev and libgstreamer-plugins-base0.10-dev.
+        on RPM-based systems gstreamer0.10-devel, libgstreamer0.10-devel
         or similar.
+    ])
+  ])
+  ], [
+  dnl Check for gstreamer 1.0. If not found, check for gstreamer 0.10. If none found fail
+  PKG_CHECK_MODULES([GST], [
+    gstreamer-1.0 >= $GST_1_0_REQUIRED
+    gstreamer-base-1.0 >= $GST_1_0_REQUIRED
+    gstreamer-pbutils-1.0 >= $GSTPB_1_0_REQUIRED
+  ], [
+    AC_SUBST(GST_CFLAGS)
+    AC_SUBST(GST_LIBS)
+  ], [
+    AC_MSG_WARN([GStreamer 1.0 not found. Checking for GStreamer 0.10])
+    PKG_CHECK_MODULES([GST], [
+      gstreamer-0.10 >= $GST_0_10_REQUIRED
+      gstreamer-base-0.10 >= $GST_0_10_REQUIRED
+      gstreamer-pbutils-0.10 >= $GSTPB_0_10_REQUIRED
+    ], [
+      AC_SUBST(GST_CFLAGS)
+      AC_SUBST(GST_LIBS)
+    ], [
+      AC_MSG_ERROR([
+          Neither GStreamer 0.10 nor GStreamer 1.0 could be found!
+          You need to install or upgrade the GStreamer development
+          packages on your system. On debian-based systems these are
+          libgstreamer*-dev and libgstreamer-plugins-base*-dev.
+          on RPM-based systems gstreamer*-devel, libgstreamer*-devel
+          or similar.
+      ])
     ])
   ])
 ])
