@@ -2,11 +2,13 @@ dnl required version of autoconf
 AC_PREREQ([2.53])
 
 dnl TODO: fill in your package name and package version here
-AC_INIT([gst-dvswitch],[0.0.4])
+AC_INIT([gst-plugins-dvswitch],[0.0.4])
 
 dnl required versions of gstreamer and plugins-base
-GST_REQUIRED=1.2.0
-GSTPB_REQUIRED=1.2.0
+GST_0_10_REQUIRED=0.10.16
+GSTPB_0_10_REQUIRED=0.10.16
+GST_1_0_REQUIRED=1.2.0
+GSTPB_1_0_REQUIRED=1.2.0
 
 AC_CONFIG_SRCDIR([src/gstdvswitchsrc.c])
 AC_CONFIG_HEADERS([config.h])
@@ -43,20 +45,32 @@ dnl for libgstinterfaces-1.0: gstreamer-interfaces-1.0 >= $GST_REQUIRED
 dnl for libgstrtp-1.0: gstreamer-rtp-1.0 >= $GST_REQUIRED
 dnl for libgstrtsp-1.0: gstreamer-rtsp-1.0 >= $GST_REQUIRED
 dnl etc.
-PKG_CHECK_MODULES(GST, [
-  gstreamer-1.0 >= $GST_REQUIRED
-  gstreamer-base-1.0 >= $GST_REQUIRED
-  gstreamer-pbutils-1.0 >= $GSTPB_REQUIRED
+
+dnl Check for gstreamer 1.0. If not found, check for gstreamer 0.10. If none found fail
+PKG_CHECK_MODULES([GST], [
+  gstreamer-1.0 >= $GST_1_0_REQUIRED
+  gstreamer-base-1.0 >= $GST_1_0_REQUIRED
+  gstreamer-pbutils-1.0 >= $GSTPB_1_0_REQUIRED
 ], [
   AC_SUBST(GST_CFLAGS)
   AC_SUBST(GST_LIBS)
 ], [
-  AC_MSG_ERROR([
-      You need to install or upgrade the GStreamer development
-      packages on your system. On debian-based systems these are
-      libgstreamer1.0-dev and libgstreamer-plugins-base1.0-dev.
-      on RPM-based systems gstreamer1.0-devel, libgstreamer1.0-devel
-      or similar. The minimum version required is $GST_REQUIRED.
+  AC_MSG_WARN([GStreamer 1.0 not found. Checking for GStreamer 0.10])
+  PKG_CHECK_MODULES([GST], [
+    gstreamer-0.10 >= $GST_0_10_REQUIRED
+    gstreamer-base-0.10 >= $GST_0_10_REQUIRED
+    gstreamer-pbutils-0.10 >= $GSTPB_0_10_REQUIRED
+  ], [
+    AC_SUBST(GST_CFLAGS)
+    AC_SUBST(GST_LIBS)
+  ], [
+    AC_MSG_ERROR([
+        You need to install or upgrade the GStreamer development
+        packages on your system. On debian-based systems these are
+        libgstreamer*-dev and libgstreamer-plugins-base*-dev.
+        on RPM-based systems gstreamer*-devel, libgstreamer*-devel
+        or similar.
+    ])
   ])
 ])
 
