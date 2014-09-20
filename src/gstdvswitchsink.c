@@ -168,7 +168,8 @@ gst_dvswitch_sink_probe(GstPad *pad, GstBuffer *buf, GstDVSwitchSink *sink)
     GstPad *targetpad;
 
     GST_DEBUG_OBJECT (sink, "Sending DVSwitch greeting packet");
-    buf = gst_buffer_new_wrapped(&GREETING_RAW_SOURCE, GREETING_SIZE);
+    buf = gst_buffer_new_and_alloc(GREETING_SIZE);
+    gst_buffer_fill (buf, 0, GREETING_RAW_SOURCE, GREETING_SIZE);
 
     targetpad = gst_element_get_static_pad (sink->kid, "sink");
     gst_pad_chain(targetpad, buf);
