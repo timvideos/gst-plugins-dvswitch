@@ -114,7 +114,10 @@ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
 
 static void gst_dvswitch_src_uri_handler_init (gpointer g_iface, gpointer iface_data);
 
-
+#if GST_VERSION_MAJOR == 1
+  G_DEFINE_TYPE_WITH_CODE (GstDvswitchSrc, gst_dvswitch_src, GST_TYPE_PUSH_SRC,
+    G_IMPLEMENT_INTERFACE (GST_TYPE_URI_HANDLER, gst_dvswitch_src_uri_handler_init));
+#else
 static void
 _do_init (GType type)
 {
@@ -127,10 +130,6 @@ _do_init (GType type)
   g_type_add_interface_static (type, GST_TYPE_URI_HANDLER, &urihandler_info);
 }
 
-#if GST_VERSION_MAJOR == 1
-  G_DEFINE_TYPE_WITH_CODE (GstDvswitchSrc, gst_dvswitch_src, GST_TYPE_PUSH_SRC,
-    G_IMPLEMENT_INTERFACE (GST_TYPE_URI_HANDLER, gst_dvswitch_src_uri_handler_init));
-#else
   GST_BOILERPLATE_FULL (GstDvswitchSrc, gst_dvswitch_src, GstPushSrc, GST_TYPE_PUSH_SRC, _do_init);
 #endif
 
@@ -145,7 +144,11 @@ static gboolean gst_dvswitch_src_start (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_stop (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock_stop (GstBaseSrc * bsrc);
-static GstCaps *gst_dvswitch_src_get_caps (GstBaseSrc * src);
+#if GST_VERSION_MAJOR == 1
+static GstCaps * gst_dvswitch_src_get_caps (GstBaseSrc * src, GstCaps * filter);
+#else
+static GstCaps * gst_dvswitch_src_get_caps (GstBaseSrc * src);
+#endif
 
 static void gst_dvswitch_src_finalize (GObject * object);
 void gst_dvswitch_uri_init (GstDvswitchUri * uri, const gchar * host, gint port);
@@ -154,7 +157,11 @@ static gboolean gst_dvswitch_src_set_uri (GstDvswitchSrc * src, const gchar * ur
 gchar * gst_dvswitch_uri_string (GstDvswitchUri * uri);
 void gst_dvswitch_uri_free (GstDvswitchUri * uri);
 int gst_dvswitch_uri_update (GstDvswitchUri * uri, const gchar * host, gint port);
+#if GST_VERSION_MAJOR == 1
+static gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
+#else
 static const gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
+#endif
 
 /* GObject vmethod implementations */
 #if GST_VERSION_MAJOR == 0
@@ -676,7 +683,11 @@ gst_dvswitch_src_stop (GstBaseSrc * bsrc)
 }
 
 static GstCaps *
+#if GST_VERSION_MAJOR == 1
+gst_dvswitch_src_get_caps (GstBaseSrc * src, GstCaps * filter)
+#else
 gst_dvswitch_src_get_caps (GstBaseSrc * src)
+#endif
 {
     return gst_caps_new_any ();
 }
@@ -705,11 +716,24 @@ wrong_uri:
 /*** GSTURIHANDLER INTERFACE *************************************************/
 
 static GstURIType
+#if GST_VERSION_MAJOR == 1
+gst_dvswitch_src_uri_get_type (GType type)
+#else
 gst_dvswitch_src_uri_get_type (void)
+#endif
 {
   return GST_URI_SRC;
 }
 
+#if GST_VERSION_MAJOR == 1
+static const gchar *const *
+gst_dvswitch_src_uri_get_protocols (GType type)
+{
+  static gchar *protocols[] = { (char *) "dvswitch", NULL };
+
+  return (const gchar * const *) protocols;
+}
+#else
 static gchar **
 gst_dvswitch_src_uri_get_protocols (void)
 {
@@ -717,8 +741,13 @@ gst_dvswitch_src_uri_get_protocols (void)
 
   return protocols;
 }
+#endif
 
+#if GST_VERSION_MAJOR == 1
+static gchar *
+#else
 static const gchar *
+#endif
 gst_dvswitch_src_uri_get_uri (GstURIHandler * handler)
 {
   GstDvswitchSrc *src = GST_DVSWITCHSRC (handler);
@@ -730,7 +759,11 @@ gst_dvswitch_src_uri_get_uri (GstURIHandler * handler)
 }
 
 static gboolean
+#if GST_VERSION_MAJOR == 1
+gst_dvswitch_src_uri_set_uri (GstURIHandler * handler, const gchar * uri, GError **error)
+#else
 gst_dvswitch_src_uri_set_uri (GstURIHandler * handler, const gchar * uri)
+#endif
 {
   gboolean ret;
 
