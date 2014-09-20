@@ -149,9 +149,9 @@ gst_dvswitch_sink_dispose (GstDVSwitchSink * sink)
 {
   if (sink->probe_id) {
 #if GST_VERSION_MAJOR == 1
-  gst_pad_remove_probe(sink->pad, sink->probe_id);
+    gst_pad_remove_probe(sink->pad, sink->probe_id);
 #else
-  gst_pad_remove_buffer_probe(sink->pad, sink->probe_id);
+    gst_pad_remove_buffer_probe(sink->pad, sink->probe_id);
 #endif
 
     sink->probe_id = 0;
