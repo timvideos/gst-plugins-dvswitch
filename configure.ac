@@ -58,6 +58,7 @@ AS_IF([test "x$enable_gst_1_0" == "xno"], [
   ], [
     AC_SUBST(GST_CFLAGS)
     AC_SUBST(GST_LIBS)
+    GST_VER=0.10
   ], [
     AC_MSG_ERROR([
         You need to install or upgrade the GStreamer development
@@ -76,6 +77,7 @@ AS_IF([test "x$enable_gst_1_0" == "xno"], [
   ], [
     AC_SUBST(GST_CFLAGS)
     AC_SUBST(GST_LIBS)
+    GST_VER=1.0
   ], [
     AC_MSG_WARN([GStreamer 1.0 not found. Checking for GStreamer 0.10])
     PKG_CHECK_MODULES([GST], [
@@ -85,6 +87,7 @@ AS_IF([test "x$enable_gst_1_0" == "xno"], [
     ], [
       AC_SUBST(GST_CFLAGS)
       AC_SUBST(GST_LIBS)
+      GST_VER=0.10
     ], [
       AC_MSG_ERROR([
           Neither GStreamer 0.10 nor GStreamer 1.0 could be found!
@@ -111,9 +114,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([ ], [ ])], [
 
 dnl set the plugindir where plugins should be installed (for src/Makefile.am)
 if test "x${prefix}" = "x$HOME"; then
-  plugindir="$HOME/.gstreamer-1.0/plugins"
+  plugindir="$HOME/.gstreamer-[$GST_VER]/plugins"
 else
-  plugindir="\$(libdir)/gstreamer-1.0"
+  plugindir="\$(libdir)/gstreamer-[$GST_VER]"
 fi
 AC_SUBST(plugindir)
 
