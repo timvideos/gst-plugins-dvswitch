@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA  02110-1301  USA
  */
 
@@ -125,7 +125,7 @@ struct _GstDvswitchSrc
   GstPushSrc parent;
 
   GstPad *srcpad;
-  
+
   GstDvswitchUri  uri;
   gchar *uristr;
 
@@ -133,7 +133,7 @@ struct _GstDvswitchSrc
 //  guint16 port;
   guint64 timeout;
   gint buffer_size;
-  
+
   GstPollFD sock;
   GstPoll *fdset;
   int sockfd;
@@ -141,7 +141,7 @@ struct _GstDvswitchSrc
 
 };
 
-struct _GstDvswitchSrcClass 
+struct _GstDvswitchSrcClass
 {
   GstPushSrcClass parent_class;
 };

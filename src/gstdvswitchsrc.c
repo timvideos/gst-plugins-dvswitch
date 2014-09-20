@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the
- * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA  02110-1301  USA
  */
 
@@ -48,7 +48,9 @@
 #include <io.h>
 #endif
 
-#include <gst/netbuffer/gstnetbuffer.h>
+#if GST_VERSION_MAJOR == 0
+  #include <gst/netbuffer/gstnetbuffer.h>
+#endif
 
 #ifdef HAVE_FIONREAD_IN_SYS_FILIO
 #include <sys/filio.h>
@@ -67,14 +69,19 @@ GST_DEBUG_CATEGORY_EXTERN (gst_dvswitch_debug);
 #define DVSWITCH_DEFAULT_TIMEOUT        0
 #define DVSWITCH_DEFAULT_BUFFER_SIZE    0
 
+#define METADATA_LONGNAME       "DVSwitch video source"
+#define METADATA_CLASSIFICATION "Source/Video"
+#define METADATA_DESCRIPTION    "Reads DIF/DV stream from dvswitch server."
+#define METADATA_AUTHOR         "Michael Farrell <michael@uanywhere.com.au>"
+
 #define CLOSE_IF_REQUESTED(tcpctx) \
 G_STMT_START { \
   CLOSE_SOCKET(tcpctx->sock.fd); \
   tcpctx->sockfd = DVSWITCH_DEFAULT_SOCKFD; \
   tcpctx->sock.fd = DVSWITCH_DEFAULT_SOCK; \
 } G_STMT_END
-  
-  
+
+
 /* Filter signals and args */
 enum
 {
@@ -90,7 +97,7 @@ enum
   PROP_URI,
   PROP_BUFFER_SIZE,
   PROP_TIMEOUT,
-  
+
   PROP_LAST
 };
 
@@ -104,10 +111,13 @@ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS ("ANY")
     );
-    
+
 static void gst_dvswitch_src_uri_handler_init (gpointer g_iface, gpointer iface_data);
 
-
+#if GST_VERSION_MAJOR == 1
+  G_DEFINE_TYPE_WITH_CODE (GstDvswitchSrc, gst_dvswitch_src, GST_TYPE_PUSH_SRC,
+    G_IMPLEMENT_INTERFACE (GST_TYPE_URI_HANDLER, gst_dvswitch_src_uri_handler_init));
+#else
 static void
 _do_init (GType type)
 {
@@ -120,20 +130,25 @@ _do_init (GType type)
   g_type_add_interface_static (type, GST_TYPE_URI_HANDLER, &urihandler_info);
 }
 
-GST_BOILERPLATE_FULL (GstDvswitchSrc, gst_dvswitch_src, GstPushSrc,
-    GST_TYPE_PUSH_SRC, _do_init);
+  GST_BOILERPLATE_FULL (GstDvswitchSrc, gst_dvswitch_src, GstPushSrc, GST_TYPE_PUSH_SRC, _do_init);
+#endif
+
 
 static void gst_dvswitch_src_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec);
 static void gst_dvswitch_src_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
-    
+
 static GstFlowReturn gst_dvswitch_src_create (GstPushSrc * psrc, GstBuffer ** buf);
 static gboolean gst_dvswitch_src_start (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_stop (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock_stop (GstBaseSrc * bsrc);
-static GstCaps *gst_dvswitch_src_get_caps (GstBaseSrc * src);
+#if GST_VERSION_MAJOR == 1
+static GstCaps * gst_dvswitch_src_get_caps (GstBaseSrc * src, GstCaps * filter);
+#else
+static GstCaps * gst_dvswitch_src_get_caps (GstBaseSrc * src);
+#endif
 
 static void gst_dvswitch_src_finalize (GObject * object);
 void gst_dvswitch_uri_init (GstDvswitchUri * uri, const gchar * host, gint port);
@@ -142,24 +157,28 @@ static gboolean gst_dvswitch_src_set_uri (GstDvswitchSrc * src, const gchar * ur
 gchar * gst_dvswitch_uri_string (GstDvswitchUri * uri);
 void gst_dvswitch_uri_free (GstDvswitchUri * uri);
 int gst_dvswitch_uri_update (GstDvswitchUri * uri, const gchar * host, gint port);
+#if GST_VERSION_MAJOR == 1
+static gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
+#else
 static const gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
+#endif
 
 /* GObject vmethod implementations */
-
+#if GST_VERSION_MAJOR == 0
 static void
 gst_dvswitch_src_base_init (gpointer gclass)
 {
   GstElementClass *element_class = GST_ELEMENT_CLASS (gclass);
 
   gst_element_class_set_details_simple(element_class,
-    "dvswitch source",
-    "Source/Video",
-    "Reads DIF/DV stream from dvswitch server.",
-    "Michael Farrell <michael@uanywhere.com.au>");
+    METADATA_LONGNAME,
+    METADATA_CLASSIFICATION,
+    METADATA_DESCRIPTION,
+    METADATA_AUTHOR);
 
-  gst_element_class_add_pad_template (element_class,
-      gst_static_pad_template_get (&src_factory));
+  gst_element_class_add_pad_template (element_class, gst_static_pad_template_get (&src_factory));
 }
+#endif
 
 /* initialize the dvswitchsrc's class */
 static void
@@ -168,6 +187,19 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
   GObjectClass *gobject_class;
   GstBaseSrcClass *gstbasesrc_class;
   GstPushSrcClass *gstpushsrc_class;
+
+#if GST_VERSION_MAJOR == 1
+  GstElementClass *element_class = GST_ELEMENT_CLASS (klass);
+
+  gst_element_class_set_metadata(element_class,
+    METADATA_LONGNAME,
+    METADATA_CLASSIFICATION,
+    METADATA_DESCRIPTION,
+    METADATA_AUTHOR);
+
+  gst_element_class_add_pad_template (element_class,
+      gst_static_pad_template_get (&src_factory));
+#endif
 
   gobject_class = (GObjectClass *) klass;
   gstbasesrc_class = (GstBaseSrcClass *) klass;
@@ -181,26 +213,26 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
   g_object_class_install_property (gobject_class, PROP_HOSTNAME,
       g_param_spec_string ("hostname", "Hostname", "Hostname of dvswitch server.",
           DVSWITCH_DEFAULT_HOSTNAME, G_PARAM_READWRITE));
-   
+
   g_object_class_install_property (gobject_class, PROP_PORT,
       g_param_spec_int ("port", "Port", "Port of dvswitch server.", 0, 65535,
           DVSWITCH_DEFAULT_PORT, G_PARAM_READWRITE));
-          
+
   g_object_class_install_property (gobject_class, PROP_URI,
       g_param_spec_string("uri", "URI", "URI in the form of dvswitch://ip:port",
-      	DVSWITCH_DEFAULT_URI, G_PARAM_READWRITE));
+        DVSWITCH_DEFAULT_URI, G_PARAM_READWRITE));
 
   g_object_class_install_property (gobject_class, PROP_BUFFER_SIZE,
       g_param_spec_int ("buffer-size", "Buffer Size",
           "Size of the kernel receive buffer in bytes, 0=default", 0, G_MAXINT,
           DVSWITCH_DEFAULT_BUFFER_SIZE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-          
+
   g_object_class_install_property (gobject_class, PROP_TIMEOUT,
       g_param_spec_uint64 ("timeout", "Timeout",
           "Post a message after timeout microseconds (0 = disabled)", 0,
           G_MAXUINT64, DVSWITCH_DEFAULT_TIMEOUT,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-          
+
   gstbasesrc_class->start = gst_dvswitch_src_start;
   gstbasesrc_class->stop = gst_dvswitch_src_stop;
   gstbasesrc_class->unlock = gst_dvswitch_src_unlock;
@@ -215,8 +247,11 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
  * initialize instance structure
  */
 static void
-gst_dvswitch_src_init (GstDvswitchSrc * filter,
-    GstDvswitchSrcClass * gclass)
+#if GST_VERSION_MAJOR == 1
+  gst_dvswitch_src_init (GstDvswitchSrc * filter)
+#else
+  gst_dvswitch_src_init (GstDvswitchSrc * filter, GstDvswitchSrcClass * gclass)
+#endif
 {
 /*
   filter->srcpad = gst_pad_new_from_static_template (&src_factory, "src");
@@ -225,7 +260,7 @@ gst_dvswitch_src_init (GstDvswitchSrc * filter,
 
   gst_element_add_pad (GST_ELEMENT (filter), filter->srcpad);
   */
-  
+
   gst_dvswitch_uri_init(&filter->uri, DVSWITCH_DEFAULT_HOSTNAME, DVSWITCH_DEFAULT_PORT);
 /*  filter->hostname = DVSWITCH_DEFAULT_HOSTNAME;
   filter->port = DVSWITCH_DEFAULT_PORT;
@@ -237,7 +272,7 @@ gst_dvswitch_src_init (GstDvswitchSrc * filter,
   /* make basesrc set timestamps on outgoing buffers based on the running_time
    * when they were captured */
   gst_base_src_set_do_timestamp (GST_BASE_SRC (filter), TRUE);
-  
+
 }
 
 static void
@@ -255,7 +290,11 @@ gst_dvswitch_src_finalize (GObject * object)
 
   WSA_CLEANUP (object);
 
+#if GST_VERSION_MAJOR == 1
+  G_OBJECT_CLASS (gst_dvswitch_src_parent_class)->finalize (object);
+#else
   G_OBJECT_CLASS (parent_class)->finalize (object);
+#endif
 }
 
 
@@ -270,17 +309,17 @@ gst_dvswitch_src_set_property (GObject * object, guint prop_id,
     case PROP_HOSTNAME:
       //filter->hostname = g_value_dup_string (value);
       if ((hostname = g_value_get_string (value)))
-      	gst_dvswitch_uri_update(&filter->uri, hostname, -1);
-     	else
-     		gst_dvswitch_uri_update(&filter->uri, DVSWITCH_DEFAULT_HOSTNAME, -1);
+        gst_dvswitch_uri_update(&filter->uri, hostname, -1);
+        else
+            gst_dvswitch_uri_update(&filter->uri, DVSWITCH_DEFAULT_HOSTNAME, -1);
       break;
     case PROP_URI:
-    	gst_dvswitch_src_set_uri(filter, g_value_get_string(value));
-    	break;
+        gst_dvswitch_src_set_uri(filter, g_value_get_string(value));
+        break;
     case PROP_PORT:
-    	//filter->port = g_value_get_uint (value);
-    	gst_dvswitch_uri_update(&filter->uri, NULL, g_value_get_int(value));
-    	break;
+        //filter->port = g_value_get_uint (value);
+        gst_dvswitch_uri_update(&filter->uri, NULL, g_value_get_int(value));
+        break;
     case PROP_BUFFER_SIZE:
       filter->buffer_size = g_value_get_int (value);
       break;
@@ -314,7 +353,7 @@ gst_dvswitch_src_get_property (GObject * object, guint prop_id,
       break;
     case PROP_URI:
       g_value_set_string (value, gst_dvswitch_src_uri_get_uri(GST_URI_HANDLER(filter)));
-      break;  
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -455,12 +494,16 @@ no_select:
       break;
   }
   GST_LOG_OBJECT (dvswitchsrc, "read %d bytes", (int) readsize);
-  
-  outbuf = gst_buffer_new ();
-  GST_BUFFER_MALLOCDATA (outbuf) = pktdata;
 
+  outbuf = gst_buffer_new ();
+
+#if GST_VERSION_MAJOR == 1
+  gst_buffer_insert_memory (outbuf, -1, gst_memory_new_wrapped (0, pktdata, ret, 0, ret, pktdata, g_free));
+#else
+  GST_BUFFER_MALLOCDATA (outbuf) = pktdata;
   GST_BUFFER_DATA (outbuf) = pktdata;
   GST_BUFFER_SIZE (outbuf) = ret;
+#endif
 
   *buf = outbuf;
 
@@ -476,7 +519,13 @@ select_error:
 stopped:
   {
     GST_DEBUG ("stop called");
+
+#if GST_VERSION_MAJOR == 1
+    return GST_FLOW_FLUSHING;
+#else
     return GST_FLOW_WRONG_STATE;
+#endif
+
   }
 ioctl_failed:
   {
@@ -506,40 +555,40 @@ gst_dvswitch_src_start (GstBaseSrc * bsrc)
   GstDvswitchSrc *src;
 
   src = GST_DVSWITCHSRC (bsrc);
-  
-  
-	struct addrinfo addr_hints = {
-		.ai_family =   AF_UNSPEC,
-		.ai_socktype = SOCK_STREAM,
-		.ai_flags =    AI_ADDRCONFIG
-	};
-	struct addrinfo * addr;
-	int error;
-	
-	char port[NI_MAXSERV];
-	memset(port, 0, sizeof(port));
-	g_snprintf(port, sizeof(port) - 1, "%d", src->uri.port);
-	port[sizeof(port)-1] = '\0';
-	
-	if ((error = getaddrinfo(src->uri.host, port, &addr_hints, &addr)))
-		goto getaddrinfo_error;
-	
 
-	// FIXME: this should probably try other addresses too, not only the first.
-	src->sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-	if (src->sockfd < 0)
-		goto no_socket;
-		
-	if (connect(src->sockfd, addr->ai_addr, addr->ai_addrlen) != 0)
-		goto connect_error;
-	
-	freeaddrinfo(addr);
-	
-	src->sock.fd = src->sockfd;
-	
-	// send command to tell dvswitch to start dumping frames at us
-	if (write(src->sockfd, GREETING_RAW_SINK, GREETING_SIZE) != GREETING_SIZE)
-		goto write_error;
+
+    struct addrinfo addr_hints = {
+        .ai_family =   AF_UNSPEC,
+        .ai_socktype = SOCK_STREAM,
+        .ai_flags =    AI_ADDRCONFIG
+    };
+    struct addrinfo * addr;
+    int error;
+
+    char port[NI_MAXSERV];
+    memset(port, 0, sizeof(port));
+    g_snprintf(port, sizeof(port) - 1, "%d", src->uri.port);
+    port[sizeof(port)-1] = '\0';
+
+    if ((error = getaddrinfo(src->uri.host, port, &addr_hints, &addr)))
+        goto getaddrinfo_error;
+
+
+    // FIXME: this should probably try other addresses too, not only the first.
+    src->sockfd = socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+    if (src->sockfd < 0)
+        goto no_socket;
+
+    if (connect(src->sockfd, addr->ai_addr, addr->ai_addrlen) != 0)
+        goto connect_error;
+
+    freeaddrinfo(addr);
+
+    src->sock.fd = src->sockfd;
+
+    // send command to tell dvswitch to start dumping frames at us
+    if (write(src->sockfd, GREETING_RAW_SINK, GREETING_SIZE) != GREETING_SIZE)
+        goto write_error;
 
   if ((src->fdset = gst_poll_new (TRUE)) == NULL)
     goto no_fdset;
@@ -634,7 +683,11 @@ gst_dvswitch_src_stop (GstBaseSrc * bsrc)
 }
 
 static GstCaps *
+#if GST_VERSION_MAJOR == 1
+gst_dvswitch_src_get_caps (GstBaseSrc * src, GstCaps * filter)
+#else
 gst_dvswitch_src_get_caps (GstBaseSrc * src)
+#endif
 {
     return gst_caps_new_any ();
 }
@@ -663,11 +716,24 @@ wrong_uri:
 /*** GSTURIHANDLER INTERFACE *************************************************/
 
 static GstURIType
+#if GST_VERSION_MAJOR == 1
+gst_dvswitch_src_uri_get_type (GType type)
+#else
 gst_dvswitch_src_uri_get_type (void)
+#endif
 {
   return GST_URI_SRC;
 }
 
+#if GST_VERSION_MAJOR == 1
+static const gchar *const *
+gst_dvswitch_src_uri_get_protocols (GType type)
+{
+  static gchar *protocols[] = { (char *) "dvswitch", NULL };
+
+  return (const gchar * const *) protocols;
+}
+#else
 static gchar **
 gst_dvswitch_src_uri_get_protocols (void)
 {
@@ -675,8 +741,13 @@ gst_dvswitch_src_uri_get_protocols (void)
 
   return protocols;
 }
+#endif
 
+#if GST_VERSION_MAJOR == 1
+static gchar *
+#else
 static const gchar *
+#endif
 gst_dvswitch_src_uri_get_uri (GstURIHandler * handler)
 {
   GstDvswitchSrc *src = GST_DVSWITCHSRC (handler);
@@ -688,7 +759,11 @@ gst_dvswitch_src_uri_get_uri (GstURIHandler * handler)
 }
 
 static gboolean
+#if GST_VERSION_MAJOR == 1
+gst_dvswitch_src_uri_set_uri (GstURIHandler * handler, const gchar * uri, GError **error)
+#else
 gst_dvswitch_src_uri_set_uri (GstURIHandler * handler, const gchar * uri)
+#endif
 {
   gboolean ret;
 

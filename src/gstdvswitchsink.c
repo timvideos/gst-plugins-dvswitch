@@ -49,6 +49,11 @@ GST_DEBUG_CATEGORY_EXTERN (gst_dvswitch_debug);
 #define UDP_DEFAULT_HOST        "localhost"
 #define UDP_DEFAULT_PORT        4951
 
+#define METADATA_LONGNAME       "DVSwitch video sink"
+#define METADATA_CLASSIFICATION "Sink/Video"
+#define METADATA_DESCRIPTION    "Sink which uses tcpclientsink to stream to a dvswitch server"
+#define METADATA_AUTHOR         "Jan Schmidt <jan@centricular.com>"
+
 /* Properties */
 enum
 {
@@ -70,30 +75,46 @@ static void gst_dvswitch_sink_set_property (GObject * object, guint prop_id,
 static void gst_dvswitch_sink_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 
-GST_BOILERPLATE (GstDVSwitchSink, gst_dvswitch_sink, GstBin, GST_TYPE_BIN);
+#if GST_VERSION_MAJOR == 1
+  G_DEFINE_TYPE (GstDVSwitchSink, gst_dvswitch_sink, GST_TYPE_BIN);
+#else
+  GST_BOILERPLATE (GstDVSwitchSink, gst_dvswitch_sink, GstBin, GST_TYPE_BIN);
+#endif
 
 static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS("video/x-dv,systemstream=(boolean)true"));
 
+#if GST_VERSION_MAJOR == 0
 static void
 gst_dvswitch_sink_base_init (gpointer klass)
 {
   GstElementClass *eklass = GST_ELEMENT_CLASS (klass);
 
-  gst_element_class_add_static_pad_template (eklass, &sink_template);
-  gst_element_class_set_details_simple (eklass, "DVswitch video sink",
-      "Sink/Video",
-      "Sink which uses tcpclientsink to stream to a dvswitch server",
-      "Jan Schmidt <jan@centricular.com>");
+  gst_element_class_add_static_pad_template(eklass, &sink_template);
+  gst_element_class_set_details_simple(eklass,
+    METADATA_LONGNAME,
+    METADATA_CLASSIFICATION,
+    METADATA_DESCRIPTION,
+    METADATA_AUTHOR);
 }
+#endif
 
 static void
 gst_dvswitch_sink_class_init (GstDVSwitchSinkClass * klass)
 {
   GObjectClass *gobject_class;
   GstElementClass *eklass = GST_ELEMENT_CLASS (klass);
+
+#if GST_VERSION_MAJOR == 1
+  gst_element_class_add_pad_template(eklass, gst_static_pad_template_get(&sink_template));
+  gst_element_class_set_metadata(eklass,
+    METADATA_LONGNAME,
+    METADATA_CLASSIFICATION,
+    METADATA_DESCRIPTION,
+    METADATA_AUTHOR);
+#endif
 
   gobject_class = G_OBJECT_CLASS (klass);
   gobject_class->dispose = (GObjectFinalizeFunc) gst_dvswitch_sink_dispose;
@@ -127,11 +148,20 @@ static void
 gst_dvswitch_sink_dispose (GstDVSwitchSink * sink)
 {
   if (sink->probe_id) {
+#if GST_VERSION_MAJOR == 1
+    gst_pad_remove_probe(sink->pad, sink->probe_id);
+#else
     gst_pad_remove_buffer_probe(sink->pad, sink->probe_id);
+#endif
+
     sink->probe_id = 0;
   }
 
+#if GST_VERSION_MAJOR == 1
+  G_OBJECT_CLASS (gst_dvswitch_sink_parent_class)->dispose ((GObject *) sink);
+#else
   G_OBJECT_CLASS (parent_class)->dispose ((GObject *) sink);
+#endif
 }
 
 static gboolean gst_dvswitch_sink_create_sink(GstDVSwitchSink * sink);
@@ -139,7 +169,11 @@ static gboolean
 gst_dvswitch_sink_probe(GstPad *pad, GstBuffer *buf, GstDVSwitchSink *sink);
 
 static void
-gst_dvswitch_sink_init (GstDVSwitchSink * sink, GstDVSwitchSinkClass * g_class)
+#if GST_VERSION_MAJOR == 1
+  gst_dvswitch_sink_init (GstDVSwitchSink * sink)
+#else
+  gst_dvswitch_sink_init (GstDVSwitchSink * sink, GstDVSwitchSinkClass * g_class)
+#endif
 {
   GstPadTemplate *t = gst_static_pad_template_get (&sink_template);
 
@@ -150,12 +184,21 @@ gst_dvswitch_sink_init (GstDVSwitchSink * sink, GstDVSwitchSinkClass * g_class)
   sink->ts_offset = DEFAULT_TS_OFFSET;
   sink->sync = DEFAULT_SYNC;
 
+#if GST_VERSION_MAJOR == 1
+  /* mark as sink */
+  GST_OBJECT_FLAG_SET (sink, GST_ELEMENT_FLAG_SINK);
+
+  gst_dvswitch_sink_create_sink(sink);
+
+  sink->probe_id = gst_pad_add_probe(sink->pad, GST_PAD_PROBE_TYPE_BUFFER, (GstPadProbeCallback)gst_dvswitch_sink_probe, sink, NULL);
+#else
   /* mark as sink */
   GST_OBJECT_FLAG_SET (sink, GST_ELEMENT_IS_SINK);
 
   gst_dvswitch_sink_create_sink(sink);
 
   sink->probe_id = gst_pad_add_buffer_probe(sink->pad, (GCallback)gst_dvswitch_sink_probe, sink);
+#endif
 }
 
 // sporked from dvswitch/src/protocol.h
@@ -173,10 +216,19 @@ gst_dvswitch_sink_probe(GstPad *pad, GstBuffer *buf, GstDVSwitchSink *sink)
     GstPad *targetpad;
 
     GST_DEBUG_OBJECT (sink, "Sending DVSwitch greeting packet");
+
+#if GST_VERSION_MAJOR == 1
+    buf = gst_buffer_new_and_alloc(GREETING_SIZE);
+    gst_buffer_fill (buf, 0, GREETING_RAW_SOURCE, GREETING_SIZE);
+
+    targetpad = gst_element_get_static_pad (sink->kid, "sink");
+#else
     buf = gst_buffer_new_and_alloc(GREETING_SIZE);
     memcpy(GST_BUFFER_DATA(buf), GREETING_RAW_SOURCE, GREETING_SIZE);
 
     targetpad = gst_element_get_pad (sink->kid, "sink");
+#endif
+
     gst_pad_chain(targetpad, buf);
     gst_object_unref(targetpad);
 
@@ -244,7 +296,11 @@ gst_dvswitch_sink_change_state (GstElement * element,
       break;
   }
 
+#if GST_VERSION_MAJOR == 1
+  ret = GST_ELEMENT_CLASS (gst_dvswitch_sink_parent_class)->change_state (element, transition);
+#else
   ret = GST_ELEMENT_CLASS (parent_class)->change_state (element, transition);
+#endif
 
   switch (transition) {
     case GST_STATE_CHANGE_READY_TO_NULL:

@@ -2,11 +2,16 @@ dnl required version of autoconf
 AC_PREREQ([2.53])
 
 dnl TODO: fill in your package name and package version here
-AC_INIT([gst-dvswitch],[0.0.4])
+AC_INIT([gst-plugins-dvswitch],[0.0.4])
 
 dnl required versions of gstreamer and plugins-base
-GST_REQUIRED=0.10.16
-GSTPB_REQUIRED=0.10.16
+GST_0_10_REQUIRED=0.10.16
+GSTPB_0_10_REQUIRED=0.10.16
+GST_1_0_REQUIRED=1.2.0
+GSTPB_1_0_REQUIRED=1.2.0
+
+AC_ARG_ENABLE([gst_1_0], AS_HELP_STRING([--disable-gst_1_0],
+  [Disable the usage of GStreamer 1.0, building against GStreamer 0.10 if installed]))
 
 AC_CONFIG_SRCDIR([src/gstdvswitchsrc.c])
 AC_CONFIG_HEADERS([config.h])
@@ -34,29 +39,65 @@ dnl Check for the required version of GStreamer core (and gst-plugins-base)
 dnl This will export GST_CFLAGS and GST_LIBS variables for use in Makefile.am
 dnl
 dnl If you need libraries from gst-plugins-base here, also add:
-dnl for libgstaudio-0.10: gstreamer-audio-0.10 >= $GST_REQUIRED
-dnl for libgstvideo-0.10: gstreamer-video-0.10 >= $GST_REQUIRED
-dnl for libgsttag-0.10: gstreamer-tag-0.10 >= $GST_REQUIRED
-dnl for libgstpbutils-0.10: gstreamer-pbutils-0.10 >= $GST_REQUIRED
-dnl for libgstfft-0.10: gstreamer-fft-0.10 >= $GST_REQUIRED
-dnl for libgstinterfaces-0.10: gstreamer-interfaces-0.10 >= $GST_REQUIRED
-dnl for libgstrtp-0.10: gstreamer-rtp-0.10 >= $GST_REQUIRED
-dnl for libgstrtsp-0.10: gstreamer-rtsp-0.10 >= $GST_REQUIRED
+dnl for libgstaudio-1.0: gstreamer-audio-1.0 >= $GST_REQUIRED
+dnl for libgstvideo-1.0: gstreamer-video-1.0 >= $GST_REQUIRED
+dnl for libgsttag-1.0: gstreamer-tag-1.0 >= $GST_REQUIRED
+dnl for libgstpbutils-1.0: gstreamer-pbutils-1.0 >= $GST_REQUIRED
+dnl for libgstfft-1.0: gstreamer-fft-1.0 >= $GST_REQUIRED
+dnl for libgstinterfaces-1.0: gstreamer-interfaces-1.0 >= $GST_REQUIRED
+dnl for libgstrtp-1.0: gstreamer-rtp-1.0 >= $GST_REQUIRED
+dnl for libgstrtsp-1.0: gstreamer-rtsp-1.0 >= $GST_REQUIRED
 dnl etc.
-PKG_CHECK_MODULES(GST, [
-  gstreamer-0.10 >= $GST_REQUIRED
-  gstreamer-base-0.10 >= $GST_REQUIRED
-  gstreamer-pbutils-0.10 >= $GSTPB_REQUIRED
-], [
-  AC_SUBST(GST_CFLAGS)
-  AC_SUBST(GST_LIBS)
-], [
-  AC_MSG_ERROR([
-      You need to install or upgrade the GStreamer development
-      packages on your system. On debian-based systems these are
-      libgstreamer0.10-dev and libgstreamer-plugins-base0.10-dev.
-      on RPM-based systems gstreamer0.10-devel, libgstreamer0.10-devel
-      or similar. The minimum version required is $GST_REQUIRED.
+
+AS_IF([test "x$enable_gst_1_0" == "xno"], [
+  AC_MSG_WARN([GStreamer 1.0 forcefully disabled! Checking for GStreamer 0.10!])
+  PKG_CHECK_MODULES([GST], [
+    gstreamer-0.10 >= $GST_0_10_REQUIRED
+    gstreamer-base-0.10 >= $GST_0_10_REQUIRED
+    gstreamer-pbutils-0.10 >= $GSTPB_0_10_REQUIRED
+  ], [
+    AC_SUBST(GST_CFLAGS)
+    AC_SUBST(GST_LIBS)
+    GST_VER=0.10
+  ], [
+    AC_MSG_ERROR([
+        You need to install or upgrade the GStreamer development
+        packages on your system. On debian-based systems these are
+        libgstreamer0.10-dev and libgstreamer-plugins-base0.10-dev.
+        on RPM-based systems gstreamer0.10-devel, libgstreamer0.10-devel
+        or similar.
+    ])
+  ])
+  ], [
+  dnl Check for gstreamer 1.0. If not found, check for gstreamer 0.10. If none found fail
+  PKG_CHECK_MODULES([GST], [
+    gstreamer-1.0 >= $GST_1_0_REQUIRED
+    gstreamer-base-1.0 >= $GST_1_0_REQUIRED
+    gstreamer-pbutils-1.0 >= $GSTPB_1_0_REQUIRED
+  ], [
+    AC_SUBST(GST_CFLAGS)
+    AC_SUBST(GST_LIBS)
+    GST_VER=1.0
+  ], [
+    AC_MSG_WARN([GStreamer 1.0 not found. Checking for GStreamer 0.10])
+    PKG_CHECK_MODULES([GST], [
+      gstreamer-0.10 >= $GST_0_10_REQUIRED
+      gstreamer-base-0.10 >= $GST_0_10_REQUIRED
+      gstreamer-pbutils-0.10 >= $GSTPB_0_10_REQUIRED
+    ], [
+      AC_SUBST(GST_CFLAGS)
+      AC_SUBST(GST_LIBS)
+      GST_VER=0.10
+    ], [
+      AC_MSG_ERROR([
+          Neither GStreamer 0.10 nor GStreamer 1.0 could be found!
+          You need to install or upgrade the GStreamer development
+          packages on your system. On debian-based systems these are
+          libgstreamer*-dev and libgstreamer-plugins-base*-dev.
+          on RPM-based systems gstreamer*-devel, libgstreamer*-devel
+          or similar.
+      ])
+    ])
   ])
 ])
 
@@ -73,9 +114,9 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM([ ], [ ])], [
 
 dnl set the plugindir where plugins should be installed (for src/Makefile.am)
 if test "x${prefix}" = "x$HOME"; then
-  plugindir="$HOME/.gstreamer-0.10/plugins"
+  plugindir="$HOME/.gstreamer-[$GST_VER]/plugins"
 else
-  plugindir="\$(libdir)/gstreamer-0.10"
+  plugindir="\$(libdir)/gstreamer-[$GST_VER]"
 fi
 AC_SUBST(plugindir)
 
