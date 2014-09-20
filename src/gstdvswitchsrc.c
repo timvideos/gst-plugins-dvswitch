@@ -48,6 +48,10 @@
 #include <io.h>
 #endif
 
+#if GST_VERSION_MAJOR == 0
+  #include <gst/netbuffer/gstnetbuffer.h>
+#endif
+
 #ifdef HAVE_FIONREAD_IN_SYS_FILIO
 #include <sys/filio.h>
 #endif
@@ -64,6 +68,11 @@ GST_DEBUG_CATEGORY_EXTERN (gst_dvswitch_debug);
 #define DVSWITCH_DEFAULT_SOCKFD         -1
 #define DVSWITCH_DEFAULT_TIMEOUT        0
 #define DVSWITCH_DEFAULT_BUFFER_SIZE    0
+
+#define METADATA_LONGNAME       "DVSwitch video source"
+#define METADATA_CLASSIFICATION "Source/Video"
+#define METADATA_DESCRIPTION    "Reads DIF/DV stream from dvswitch server."
+#define METADATA_AUTHOR         "Michael Farrell <michael@uanywhere.com.au>"
 
 #define CLOSE_IF_REQUESTED(tcpctx) \
 G_STMT_START { \
@@ -118,8 +127,13 @@ _do_init (GType type)
   g_type_add_interface_static (type, GST_TYPE_URI_HANDLER, &urihandler_info);
 }
 
-G_DEFINE_TYPE (GstDvswitchSrc, gst_dvswitch_src,
-    GST_TYPE_PUSH_SRC);
+#if GST_VERSION_MAJOR == 1
+  G_DEFINE_TYPE_WITH_CODE (GstDvswitchSrc, gst_dvswitch_src, GST_TYPE_PUSH_SRC,
+    G_IMPLEMENT_INTERFACE (GST_TYPE_URI_HANDLER, gst_dvswitch_src_uri_handler_init));
+#else
+  GST_BOILERPLATE_FULL (GstDvswitchSrc, gst_dvswitch_src, GstPushSrc, GST_TYPE_PUSH_SRC, _do_init);
+#endif
+
 
 static void gst_dvswitch_src_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec);
@@ -143,6 +157,21 @@ int gst_dvswitch_uri_update (GstDvswitchUri * uri, const gchar * host, gint port
 static const gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
 
 /* GObject vmethod implementations */
+#if GST_VERSION_MAJOR == 0
+static void
+gst_dvswitch_src_base_init (gpointer gclass)
+{
+  GstElementClass *element_class = GST_ELEMENT_CLASS (gclass);
+
+  gst_element_class_set_details_simple(element_class,
+    METADATA_LONGNAME,
+    METADATA_CLASSIFICATION,
+    METADATA_DESCRIPTION,
+    METADATA_AUTHOR);
+
+  gst_element_class_add_pad_template (element_class, gst_static_pad_template_get (&src_factory));
+}
+#endif
 
 /* initialize the dvswitchsrc's class */
 static void
@@ -152,16 +181,18 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
   GstBaseSrcClass *gstbasesrc_class;
   GstPushSrcClass *gstpushsrc_class;
 
+#if GST_VERSION_MAJOR == 1
   GstElementClass *element_class = GST_ELEMENT_CLASS (klass);
 
-  gst_element_class_set_details_simple(element_class,
-    "DVSwitch video source",
-    "Source/Video",
-    "Reads DIF/DV stream from dvswitch server.",
-    "Michael Farrell <michael@uanywhere.com.au>");
+  gst_element_class_set_metadata(element_class,
+    METADATA_LONGNAME,
+    METADATA_CLASSIFICATION,
+    METADATA_DESCRIPTION,
+    METADATA_AUTHOR);
 
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&src_factory));
+#endif
 
   gobject_class = (GObjectClass *) klass;
   gstbasesrc_class = (GstBaseSrcClass *) klass;
@@ -209,7 +240,11 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
  * initialize instance structure
  */
 static void
-gst_dvswitch_src_init (GstDvswitchSrc * filter)
+#if GST_VERSION_MAJOR == 1
+  gst_dvswitch_src_init (GstDvswitchSrc * filter)
+#else
+  gst_dvswitch_src_init (GstDvswitchSrc * filter, GstDvswitchSrcClass * gclass)
+#endif
 {
 /*
   filter->srcpad = gst_pad_new_from_static_template (&src_factory, "src");
@@ -248,7 +283,11 @@ gst_dvswitch_src_finalize (GObject * object)
 
   WSA_CLEANUP (object);
 
+#if GST_VERSION_MAJOR == 1
   G_OBJECT_CLASS (gst_dvswitch_src_parent_class)->finalize (object);
+#else
+  G_OBJECT_CLASS (parent_class)->finalize (object);
+#endif
 }
 
 
@@ -450,10 +489,14 @@ no_select:
   GST_LOG_OBJECT (dvswitchsrc, "read %d bytes", (int) readsize);
 
   outbuf = gst_buffer_new ();
-  GstMemory* mem = gst_memory_new_wrapped(GST_MEMORY_FLAG_READONLY | GST_MEMORY_FLAG_NO_SHARE | GST_MEMORY_FLAG_PHYSICALLY_CONTIGUOUS,
-    pktdata, ret, 0, ret, NULL, NULL);
-  gst_buffer_replace_memory(outbuf, 0, mem);
-  // do I need to free mem now? How?
+
+#if GST_VERSION_MAJOR == 1
+  gst_buffer_insert_memory (outbuf, -1, gst_memory_new_wrapped (0, pktdata, ret, 0, ret, pktdata, g_free));
+#else
+  GST_BUFFER_MALLOCDATA (outbuf) = pktdata;
+  GST_BUFFER_DATA (outbuf) = pktdata;
+  GST_BUFFER_SIZE (outbuf) = ret;
+#endif
 
   *buf = outbuf;
 
@@ -469,7 +512,13 @@ select_error:
 stopped:
   {
     GST_DEBUG ("stop called");
+
+#if GST_VERSION_MAJOR == 1
     return GST_FLOW_FLUSHING;
+#else
+    return GST_FLOW_WRONG_STATE;
+#endif
+
   }
 ioctl_failed:
   {
