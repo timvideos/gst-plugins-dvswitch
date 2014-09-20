@@ -197,7 +197,7 @@ static void
 
   gst_dvswitch_sink_create_sink(sink);
 
-  sink->probe_id = gst_pad_add_buffer_probe(sink->pad, (GCallback)gst_dvswitch_sink_probe, sink, NULL);
+  sink->probe_id = gst_pad_add_buffer_probe(sink->pad, (GCallback)gst_dvswitch_sink_probe, sink);
 #endif
 }
 
