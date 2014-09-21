@@ -18,3 +18,10 @@ Makefile
 .libs
 *.l[oa]
 m4/
+compile
+debian/autoreconf.after
+debian/autoreconf.before
+debian/files
+debian/gstreamer1.0-dvswitch.debhelper.log
+debian/gstreamer1.0-dvswitch.substvars
+debian/gstreamer1.0-dvswitch/

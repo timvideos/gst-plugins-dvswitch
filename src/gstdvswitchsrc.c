@@ -23,7 +23,7 @@
 /**
  * SECTION:element-dvswitchsrc
  *
- * dvswitchsrc is a source that receives the mixed video from a dvswitch server.
+ * dvswitchsrc is a source that receives the mixed video from a DVSwitch server.
  *
  * <refsect2>
  * <title>Example launch line</title>
@@ -47,8 +47,6 @@
 #if defined _MSC_VER && (_MSC_VER >= 1400)
 #include <io.h>
 #endif
-
-#include <gst/netbuffer/gstnetbuffer.h>
 
 #ifdef HAVE_FIONREAD_IN_SYS_FILIO
 #include <sys/filio.h>
@@ -82,6 +80,8 @@ enum
   LAST_SIGNAL
 };
 
+// properties
+
 enum
 {
   PROP_0,
@@ -107,21 +107,9 @@ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
     
 static void gst_dvswitch_src_uri_handler_init (gpointer g_iface, gpointer iface_data);
 
+G_DEFINE_TYPE_WITH_CODE (GstDvswitchSrc, gst_dvswitch_src, GST_TYPE_PUSH_SRC,
+      G_IMPLEMENT_INTERFACE (GST_TYPE_URI_HANDLER, gst_dvswitch_src_uri_handler_init));
 
-static void
-_do_init (GType type)
-{
-  static const GInterfaceInfo urihandler_info = {
-    gst_dvswitch_src_uri_handler_init,
-    NULL,
-    NULL
-  };
-
-  g_type_add_interface_static (type, GST_TYPE_URI_HANDLER, &urihandler_info);
-}
-
-GST_BOILERPLATE_FULL (GstDvswitchSrc, gst_dvswitch_src, GstPushSrc,
-    GST_TYPE_PUSH_SRC, _do_init);
 
 static void gst_dvswitch_src_set_property (GObject * object, guint prop_id,
     const GValue * value, GParamSpec * pspec);
@@ -133,7 +121,7 @@ static gboolean gst_dvswitch_src_start (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_stop (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock (GstBaseSrc * bsrc);
 static gboolean gst_dvswitch_src_unlock_stop (GstBaseSrc * bsrc);
-static GstCaps *gst_dvswitch_src_get_caps (GstBaseSrc * src);
+static GstCaps *gst_dvswitch_src_get_caps (GstBaseSrc * src, GstCaps * filter);
 
 static void gst_dvswitch_src_finalize (GObject * object);
 void gst_dvswitch_uri_init (GstDvswitchUri * uri, const gchar * host, gint port);
@@ -142,16 +130,16 @@ static gboolean gst_dvswitch_src_set_uri (GstDvswitchSrc * src, const gchar * ur
 gchar * gst_dvswitch_uri_string (GstDvswitchUri * uri);
 void gst_dvswitch_uri_free (GstDvswitchUri * uri);
 int gst_dvswitch_uri_update (GstDvswitchUri * uri, const gchar * host, gint port);
-static const gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
+static gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
 
-/* GObject vmethod implementations */
 
+/* initialize the dvswitchsrc's class */
 static void
-gst_dvswitch_src_base_init (gpointer gclass)
+gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
 {
-  GstElementClass *element_class = GST_ELEMENT_CLASS (gclass);
+  GstElementClass *element_class = GST_ELEMENT_CLASS (klass);
 
-  gst_element_class_set_details_simple(element_class,
+  gst_element_class_set_metadata(element_class,
     "DVSwitch video source",
     "Source/Video",
     "Reads DIF/DV stream from a DVSwitch server.",
@@ -159,12 +147,7 @@ gst_dvswitch_src_base_init (gpointer gclass)
 
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&src_factory));
-}
 
-/* initialize the dvswitchsrc's class */
-static void
-gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
-{
   GObjectClass *gobject_class;
   GstBaseSrcClass *gstbasesrc_class;
   GstPushSrcClass *gstpushsrc_class;
@@ -173,18 +156,21 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
   gstbasesrc_class = (GstBaseSrcClass *) klass;
   gstpushsrc_class = (GstPushSrcClass *) klass;
 
+  /* define virtual function pointers */
+
   gobject_class->set_property = gst_dvswitch_src_set_property;
   gobject_class->get_property = gst_dvswitch_src_get_property;
   gobject_class->finalize = gst_dvswitch_src_finalize;
 
+  /* define properties */
 
   g_object_class_install_property (gobject_class, PROP_HOSTNAME,
-      g_param_spec_string ("host", "host", 
+      g_param_spec_string ("host", "host",
           "Hostname of the DVSwitch server to receive from.",
           DVSWITCH_DEFAULT_HOSTNAME, G_PARAM_READWRITE));
    
   g_object_class_install_property (gobject_class, PROP_PORT,
-      g_param_spec_int ("port", "port", 
+      g_param_spec_int ("port", "port",
           "Port of the DVSwitch server to receive from.", 0, 65535,
           DVSWITCH_DEFAULT_PORT, G_PARAM_READWRITE));
           
@@ -217,8 +203,7 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
  * initialize instance structure
  */
 static void
-gst_dvswitch_src_init (GstDvswitchSrc * filter,
-    GstDvswitchSrcClass * gclass)
+gst_dvswitch_src_init (GstDvswitchSrc * filter)
 {
 /*
   filter->srcpad = gst_pad_new_from_static_template (&src_factory, "src");
@@ -257,7 +242,7 @@ gst_dvswitch_src_finalize (GObject * object)
 
   WSA_CLEANUP (object);
 
-  G_OBJECT_CLASS (parent_class)->finalize (object);
+  G_OBJECT_CLASS (gst_dvswitch_src_parent_class)->finalize (object);
 }
 
 
@@ -459,10 +444,12 @@ no_select:
   GST_LOG_OBJECT (dvswitchsrc, "read %d bytes", (int) readsize);
   
   outbuf = gst_buffer_new ();
-  GST_BUFFER_MALLOCDATA (outbuf) = pktdata;
 
-  GST_BUFFER_DATA (outbuf) = pktdata;
-  GST_BUFFER_SIZE (outbuf) = ret;
+  // ret is size of pktdata
+
+  gst_buffer_insert_memory (outbuf, -1,
+                            gst_memory_new_wrapped (0, pktdata,
+                                    ret, 0, ret, pktdata, g_free));
 
   *buf = outbuf;
 
@@ -478,7 +465,7 @@ select_error:
 stopped:
   {
     GST_DEBUG ("stop called");
-    return GST_FLOW_WRONG_STATE;
+    return GST_FLOW_FLUSHING;
   }
 ioctl_failed:
   {
@@ -636,7 +623,7 @@ gst_dvswitch_src_stop (GstBaseSrc * bsrc)
 }
 
 static GstCaps *
-gst_dvswitch_src_get_caps (GstBaseSrc * src)
+gst_dvswitch_src_get_caps (GstBaseSrc * src, GstCaps * filter)
 {
     return gst_caps_new_any ();
 }
@@ -665,20 +652,20 @@ wrong_uri:
 /*** GSTURIHANDLER INTERFACE *************************************************/
 
 static GstURIType
-gst_dvswitch_src_uri_get_type (void)
+gst_dvswitch_src_uri_get_type (GType type)
 {
   return GST_URI_SRC;
 }
 
-static gchar **
-gst_dvswitch_src_uri_get_protocols (void)
+static const gchar *const *
+gst_dvswitch_src_uri_get_protocols (GType type)
 {
   static gchar *protocols[] = { (char *) "dvswitch", NULL };
 
-  return protocols;
+  return (const gchar * const *)protocols;
 }
 
-static const gchar *
+static gchar *
 gst_dvswitch_src_uri_get_uri (GstURIHandler * handler)
 {
   GstDvswitchSrc *src = GST_DVSWITCHSRC (handler);
@@ -690,7 +677,7 @@ gst_dvswitch_src_uri_get_uri (GstURIHandler * handler)
 }
 
 static gboolean
-gst_dvswitch_src_uri_set_uri (GstURIHandler * handler, const gchar * uri)
+gst_dvswitch_src_uri_set_uri (GstURIHandler * handler, const gchar * uri, GError **error)
 {
   gboolean ret;
 

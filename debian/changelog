@@ -1,4 +1,4 @@
-gstreamer0.10-dvswitch (0.0.1-1) unstable; urgency=low
+gstreamer1.0-dvswitch (0.0.1-1) unstable; urgency=low
 
   * Initial release (Closes: #673105)
 
