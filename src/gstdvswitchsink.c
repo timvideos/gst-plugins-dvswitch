@@ -21,7 +21,7 @@
 /**
  * SECTION:element-dvswitchsink
  *
- * dvswitchsink is a sink that wraps tcpclientsink to send video to a dvswitch
+ * dvswitchsink is a sink that wraps tcpclientsink to send video to a DVSwitch
  * server.
  *
  * <refsect2>
@@ -89,7 +89,7 @@ gst_dvswitch_sink_class_init (GstDVSwitchSinkClass * klass)
                         gst_static_pad_template_get (&sink_template));
   gst_element_class_set_metadata (eklass, "DVswitch video sink",
       "Sink/Video",
-      "Sink which uses tcpclientsink to stream to a dvswitch server",
+      "Sink which uses tcpclientsink to stream to a DVSwitch server",
       "Jan Schmidt <jan@centricular.com>");
 
 
@@ -114,10 +114,10 @@ gst_dvswitch_sink_class_init (GstDVSwitchSinkClass * klass)
 
   g_object_class_install_property (G_OBJECT_CLASS (klass), PROP_HOST,
       g_param_spec_string ("host", "host",
-          "The host/IP/Multicast group to send the packets to",
+          "Hostname of the DVSwitch server to send to.",
           UDP_DEFAULT_HOST, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
   g_object_class_install_property (G_OBJECT_CLASS (klass), PROP_PORT,
-      g_param_spec_int ("port", "port", "The port to send the packets to",
+      g_param_spec_int ("port", "port", "Port of the DVSwitch server to send to",
           0, 65535, UDP_DEFAULT_PORT,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
