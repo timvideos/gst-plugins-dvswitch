@@ -23,7 +23,7 @@
 /**
  * SECTION:element-dvswitchsrc
  *
- * dvswitchsrc is a source that receives the mixed video from a dvswitch server.
+ * dvswitchsrc is a source that receives the mixed video from a DVSwitch server.
  *
  * <refsect2>
  * <title>Example launch line</title>
@@ -107,8 +107,6 @@ static GstStaticPadTemplate src_factory = GST_STATIC_PAD_TEMPLATE ("src",
     
 static void gst_dvswitch_src_uri_handler_init (gpointer g_iface, gpointer iface_data);
 
-#define gst_dvswitch_src_parent_class parent_class
-
 G_DEFINE_TYPE_WITH_CODE (GstDvswitchSrc, gst_dvswitch_src, GST_TYPE_PUSH_SRC,
       G_IMPLEMENT_INTERFACE (GST_TYPE_URI_HANDLER, gst_dvswitch_src_uri_handler_init));
 
@@ -132,7 +130,7 @@ static gboolean gst_dvswitch_src_set_uri (GstDvswitchSrc * src, const gchar * ur
 gchar * gst_dvswitch_uri_string (GstDvswitchUri * uri);
 void gst_dvswitch_uri_free (GstDvswitchUri * uri);
 int gst_dvswitch_uri_update (GstDvswitchUri * uri, const gchar * host, gint port);
-static const gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
+static gchar * gst_dvswitch_src_uri_get_uri (GstURIHandler * handler);
 
 
 /* initialize the dvswitchsrc's class */
@@ -244,7 +242,7 @@ gst_dvswitch_src_finalize (GObject * object)
 
   WSA_CLEANUP (object);
 
-  G_OBJECT_CLASS (parent_class)->finalize (object);
+  G_OBJECT_CLASS (gst_dvswitch_src_parent_class)->finalize (object);
 }
 
 
@@ -659,15 +657,15 @@ gst_dvswitch_src_uri_get_type (GType type)
   return GST_URI_SRC;
 }
 
-static gchar **
+static const gchar *const *
 gst_dvswitch_src_uri_get_protocols (GType type)
 {
   static gchar *protocols[] = { (char *) "dvswitch", NULL };
 
-  return protocols;
+  return (const gchar * const *)protocols;
 }
 
-static const gchar *
+static gchar *
 gst_dvswitch_src_uri_get_uri (GstURIHandler * handler)
 {
   GstDvswitchSrc *src = GST_DVSWITCHSRC (handler);
