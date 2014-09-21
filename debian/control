@@ -4,7 +4,7 @@ Priority: extra
 Maintainer: James Bromberger <jeb@debian.org>
 Build-Depends: debhelper (>= 8.0.0), cdbs (>= 0.4.93), dh-autoreconf, libgstreamer-plugins-base1.0-dev
 Standards-Version: 3.9.3
-Homepage: https://github.com/timsvideo/gst-dvswitch
+Homepage: https://github.com/timvideos/gst-plugins-dvswitch
 
 Package: gstreamer1.0-dvswitch
 Architecture: any
