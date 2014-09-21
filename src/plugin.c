@@ -42,7 +42,7 @@ GST_PLUGIN_DEFINE (
     GST_VERSION_MAJOR,
     GST_VERSION_MINOR,
     dvswitch,
-    "Reads/Writes DIF/DV stream from/to dvswitch server.",
+    "Reads/Writes a DIF/DV stream from/to a DVSwitch server.",
     dvswitch_init,
     VERSION,
     "LGPL",

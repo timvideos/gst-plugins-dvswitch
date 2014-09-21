@@ -70,8 +70,6 @@ static void gst_dvswitch_sink_set_property (GObject * object, guint prop_id,
 static void gst_dvswitch_sink_get_property (GObject * object, guint prop_id,
     GValue * value, GParamSpec * pspec);
 
-#define gst_dvswitch_sink_parent_class parent_class
-
 G_DEFINE_TYPE (GstDVSwitchSink, gst_dvswitch_sink, GST_TYPE_BIN);
 
 static GstStaticPadTemplate sink_template = GST_STATIC_PAD_TEMPLATE ("sink",
@@ -131,7 +129,7 @@ gst_dvswitch_sink_dispose (GstDVSwitchSink * sink)
     sink->probe_id = 0;
   }
 
-  G_OBJECT_CLASS (parent_class)->dispose ((GObject *) sink);
+  G_OBJECT_CLASS (gst_dvswitch_sink_parent_class)->dispose ((GObject *) sink);
 }
 
 static gboolean gst_dvswitch_sink_create_sink(GstDVSwitchSink * sink);
@@ -247,7 +245,7 @@ gst_dvswitch_sink_change_state (GstElement * element,
       break;
   }
 
-  ret = GST_ELEMENT_CLASS (parent_class)->change_state (element, transition);
+  ret = GST_ELEMENT_CLASS (gst_dvswitch_sink_parent_class)->change_state (element, transition);
 
   switch (transition) {
     case GST_STATE_CHANGE_READY_TO_NULL:
