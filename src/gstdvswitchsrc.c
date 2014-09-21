@@ -23,7 +23,7 @@
 /**
  * SECTION:element-dvswitchsrc
  *
- * FIXME:Describe dvswitchsrc here.
+ * dvswitchsrc is a source that receives the mixed video from a dvswitch server.
  *
  * <refsect2>
  * <title>Example launch line</title>
@@ -59,8 +59,8 @@
 GST_DEBUG_CATEGORY_EXTERN (gst_dvswitch_debug);
 #define GST_CAT_DEFAULT gst_dvswitch_debug
 
-#define DVSWITCH_DEFAULT_HOSTNAME       "127.0.0.1"
-#define DVSWITCH_DEFAULT_PORT           5000
+#define DVSWITCH_DEFAULT_HOSTNAME       "localhost"
+#define DVSWITCH_DEFAULT_PORT           4951
 #define DVSWITCH_DEFAULT_URI            "dvswitch://"DVSWITCH_DEFAULT_HOSTNAME":"G_STRINGIFY(DVSWITCH_DEFAULT_PORT)
 #define DVSWITCH_DEFAULT_SOCK           -1
 #define DVSWITCH_DEFAULT_SOCKFD         -1
@@ -152,9 +152,9 @@ gst_dvswitch_src_base_init (gpointer gclass)
   GstElementClass *element_class = GST_ELEMENT_CLASS (gclass);
 
   gst_element_class_set_details_simple(element_class,
-    "dvswitch source",
+    "DVSwitch video source",
     "Source/Video",
-    "Reads DIF/DV stream from dvswitch server.",
+    "Reads DIF/DV stream from a DVSwitch server.",
     "Michael Farrell <michael@uanywhere.com.au>");
 
   gst_element_class_add_pad_template (element_class,
@@ -179,11 +179,13 @@ gst_dvswitch_src_class_init (GstDvswitchSrcClass * klass)
 
 
   g_object_class_install_property (gobject_class, PROP_HOSTNAME,
-      g_param_spec_string ("hostname", "Hostname", "Hostname of dvswitch server.",
+      g_param_spec_string ("host", "host", 
+          "Hostname of the DVSwitch server to receive from.",
           DVSWITCH_DEFAULT_HOSTNAME, G_PARAM_READWRITE));
    
   g_object_class_install_property (gobject_class, PROP_PORT,
-      g_param_spec_int ("port", "Port", "Port of dvswitch server.", 0, 65535,
+      g_param_spec_int ("port", "port", 
+          "Port of the DVSwitch server to receive from.", 0, 65535,
           DVSWITCH_DEFAULT_PORT, G_PARAM_READWRITE));
           
   g_object_class_install_property (gobject_class, PROP_URI,
