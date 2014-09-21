@@ -8,7 +8,7 @@ autoreconf --verbose --force --install --make || {
  exit 1;
 }
 
-./configure --prefix=/usr/lib/x86_64-linux-gnu/gstreamer-1.0/ || {
+./configure || {
  echo 'configure failed';
  exit 1;
 }
