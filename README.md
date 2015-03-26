@@ -22,7 +22,7 @@ cd gst-plugins-dvswitch
 dpkg-checkbuilddeps
 # Install any missing build dependencies
 dpkg-buildpackage -b
-dpkg --install ../gstreamer1.0-dvswitch*.deb
+sudo dpkg --install ../gstreamer1.0-dvswitch*.deb
 ```
 
 # How to use
@@ -31,7 +31,7 @@ To get video from DVswitch, you can use it from the command-line like so:
 
 ```
 gst-launch-1.0 -v \
-  dvswitchsrc hostname=127.0.0.1 port=5000 ! \
+  dvswitchsrc host=127.0.0.1 port=5000 ! \
   dvdemux ! \
   dvdec ! \
   autovideosink
@@ -39,13 +39,12 @@ gst-launch-1.0 -v \
 
 To send video to a DVswitch, you can use it from the command-line like so;
 
-FIXME: Update for gstreamer 1.0
 ```
 gst-launch-1.0 -v \
   videotestsrc is-live=true ! \
-  ffmpegcolorspace ! \
-  ffenc_dvvideo ! \
-  ffmux_dv ! \
+  videoconvert ! \
+  avenc_dvvideo ! \
+  avmux_dv ! \
   dvswitchsink host=127.0.0.1 port=5000
 ```
 
