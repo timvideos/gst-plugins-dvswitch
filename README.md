@@ -22,7 +22,7 @@ cd gst-plugins-dvswitch
 dpkg-checkbuilddeps
 # Install any missing build dependencies
 dpkg-buildpackage -b
-dpkg --install ../gstreamer0.10-dvswitch*.deb
+dpkg --install ../gstreamer1.0-dvswitch*.deb
 ```
 
 # How to use
@@ -30,7 +30,7 @@ dpkg --install ../gstreamer0.10-dvswitch*.deb
 To get video from DVswitch, you can use it from the command-line like so:
 
 ```
-gst-launch-0.10 -v \
+gst-launch-1.0 -v \
   dvswitchsrc hostname=127.0.0.1 port=5000 ! \
   dvdemux ! \
   dvdec ! \
@@ -39,8 +39,9 @@ gst-launch-0.10 -v \
 
 To send video to a DVswitch, you can use it from the command-line like so;
 
+FIXME: Update for gstreamer 1.0
 ```
-gst-launch-0.10 -v \
+gst-launch-1.0 -v \
   videotestsrc is-live=true ! \
   ffmpegcolorspace ! \
   ffenc_dvvideo ! \
