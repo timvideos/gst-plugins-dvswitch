@@ -57,7 +57,9 @@ enum
   PROP_TS_OFFSET,
   PROP_SYNC,
   PROP_HOST,
-  PROP_PORT
+  PROP_PORT,
+  PROP_C3VOC_MODE,
+  PROP_C3VOC_SOURCE_ID
 };
 
 static GstStateChangeReturn
@@ -118,7 +120,14 @@ gst_dvswitch_sink_class_init (GstDVSwitchSinkClass * klass)
       g_param_spec_int ("port", "port", "Port of the DVSwitch server to send to",
           0, 65535, UDP_DEFAULT_PORT,
           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
+  g_object_class_install_property (G_OBJECT_CLASS (klass), PROP_C3VOC_MODE,
+      g_param_spec_boolean ("c3voc-mode", "c3",
+          "Use the C3VOC protocol extensions.",
+          FALSE, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+  g_object_class_install_property (G_OBJECT_CLASS (klass), PROP_C3VOC_SOURCE_ID,
+      g_param_spec_int ("c3voc-source-id", "sid",
+          "(C3VOC Extension) Request a specific source id.",
+          -1, 255, 0, G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -170,12 +179,18 @@ gst_dvswitch_sink_probe(GstPad *pad, GstBuffer *buf, GstDVSwitchSink *sink)
   if (sink->need_greeting) {
     GstBuffer *buf;
     GstPad *targetpad;
+    size_t buffer_size = GREETING_SIZE;
 
     GST_DEBUG_OBJECT (sink, "Sending DVSwitch greeting packet");
 
-    buf = gst_buffer_new_and_alloc(GREETING_SIZE);
+    if (sink->c3voc_mode)
+      buffer_size += 1;
 
+    buf = gst_buffer_new_and_alloc(GREETING_SIZE);
     gst_buffer_fill (buf, 0, GREETING_RAW_SOURCE, GREETING_SIZE);
+    if (sink->c3voc_mode) {
+      gst_buffer_memset(buf, GREETING_SIZE-1, sink->c3voc_source_id, 1);
+    }
 
     targetpad = gst_element_get_static_pad (sink->kid, "sink");
     gst_pad_chain(targetpad, buf);
@@ -280,6 +295,16 @@ gst_dvswitch_sink_set_property (GObject * object, guint prop_id,
       g_object_set_property (G_OBJECT (sink->kid), pspec->name, value);
       break;
 
+    case PROP_C3VOC_MODE:
+      sink->c3voc_mode = g_value_get_boolean (value);
+      if (!sink->c3voc_mode)
+        sink->c3voc_source_id = -1;
+      break;
+
+    case PROP_C3VOC_SOURCE_ID:
+      sink->c3voc_source_id = g_value_get_int (value);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -302,6 +327,12 @@ gst_dvswitch_sink_get_property (GObject * object, guint prop_id,
     case PROP_HOST:
     case PROP_PORT:
       g_object_get_property (G_OBJECT (sink->kid), pspec->name, value);
+      break;
+    case PROP_C3VOC_MODE:
+      g_value_set_boolean (value, sink->c3voc_mode);
+      break;
+    case PROP_C3VOC_SOURCE_ID:
+      g_value_set_int (value, sink->c3voc_source_id);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);

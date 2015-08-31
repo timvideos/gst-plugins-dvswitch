@@ -48,6 +48,8 @@ typedef struct _GstDVSwitchSink {
 
   gulong probe_id;
   gboolean need_greeting;
+  gboolean c3voc_mode;
+  gint c3voc_source_id;
 } GstDVSwitchSink;
 
 typedef struct _GstDVSwitchSinkClass {
