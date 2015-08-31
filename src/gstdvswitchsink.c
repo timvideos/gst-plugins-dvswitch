@@ -186,10 +186,10 @@ gst_dvswitch_sink_probe(GstPad *pad, GstBuffer *buf, GstDVSwitchSink *sink)
     if (sink->c3voc_mode)
       buffer_size += 1;
 
-    buf = gst_buffer_new_and_alloc(GREETING_SIZE);
-    gst_buffer_fill (buf, 0, GREETING_RAW_SOURCE, GREETING_SIZE);
+    buf = gst_buffer_new_and_alloc(buffer_size);
+    gst_buffer_fill (buf, 0, GREETING_RAW_SOURCE, buffer_size);
     if (sink->c3voc_mode) {
-      gst_buffer_memset(buf, GREETING_SIZE-1, sink->c3voc_source_id, 1);
+      gst_buffer_memset(buf, buffer_size-1, sink->c3voc_source_id, 1);
     }
 
     targetpad = gst_element_get_static_pad (sink->kid, "sink");
