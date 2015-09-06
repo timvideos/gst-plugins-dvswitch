@@ -5,7 +5,8 @@ Maintainer: James Bromberger <jeb@debian.org>
 Build-Depends:
  debhelper (>= 9.0.0),
  dh-autoreconf,
- libgstreamer-plugins-base1.0-dev
+ libgstreamer-plugins-base1.0-dev,
+ libgstreamer1.0-dev
 Standards-Version: 3.9.6
 Homepage: https://github.com/timvideos/gst-plugins-dvswitch
 Vcs-Browser: https://github.com/timvideos/gst-plugins-dvswitch
