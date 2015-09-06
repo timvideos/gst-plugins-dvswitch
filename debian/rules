@@ -6,4 +6,5 @@
 
 override_dh_install:
 	dh_install
+	find debian/gstreamer1.0-dvswitch/usr/lib -name '*.la' -delete
 	dh_gstscancodecs
