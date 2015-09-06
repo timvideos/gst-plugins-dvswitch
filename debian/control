@@ -3,8 +3,7 @@ Section: libs
 Priority: extra
 Maintainer: James Bromberger <jeb@debian.org>
 Build-Depends:
- cdbs (>= 0.4.93),
- debhelper (>= 8.0.0),
+ debhelper (>= 9.0.0),
  dh-autoreconf,
  libgstreamer-plugins-base1.0-dev
 Standards-Version: 3.9.3

@@ -1,36 +1,9 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/gnome.mk
-include /usr/share/cdbs/1/rules/utils.mk
-include /usr/share/cdbs/1/rules/autoreconf.mk
+%:
+	dh $@ --with autoreconf
 
-# this is for compatibility with dpkg-dev < 1.13.5, see
-# <http://lists.debian.org/debian-devel-announce/2005/06/msg00010.html>
-DEB_HOST_ARCH_CPU := $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU 2>/dev/null)
-DEB_HOST_ARCH_OS := $(shell dpkg-architecture -qDEB_HOST_ARCH_OS 2>/dev/null)
-
-# Take account of old dpkg-architecture output.
-ifeq ($(DEB_HOST_ARCH_CPU),)
-  DEB_HOST_ARCH_CPU := $(shell dpkg-architecture -qDEB_HOST_GNU_CPU)
-  ifeq ($(DEB_HOST_ARCH_CPU),x86_64)
-    DEB_HOST_ARCH_CPU := amd64
-  endif
-endif
-ifeq ($(DEB_HOST_ARCH_OS),)
-  DEB_HOST_ARCH_OS := $(subst -gnu,,$(shell dpkg-architecture -qDEB_HOST_GNU_SYSTEM))
-  ifeq ($(DEB_HOST_ARCH_OS),gnu)
-    DEB_HOST_ARCH_OS := hurd
-  endif
-endif
-# end of compatibility block
-
-DEB_CONFIGURE_EXTRA_FLAGS += \
-        --libdir=\$${prefix}/lib/$(DEB_HOST_MULTIARCH) \
-
-DEB_DH_SHLIBDEPS_ARGS_ALL += --dpkg-shlibdeps-params=--ignore-missing-info
-
-common-binary-fixup-arch::
-	LD_LIBRARY_PATH=debian/libgstreamer-plugins-bad1.0-0/usr/lib/$(DEB_HOST_MULTIARCH):$(LD_LIBRARY_PATH) \
-		dh_gstscancodecs
+override_dh_install:
+	dh_install
+	dh_gstscancodecs
