@@ -1,4 +1,4 @@
-Source: gstreamer1.0-dvswitch
+Source: gst-plugins-dvswitch
 Section: libs
 Priority: extra
 Maintainer: James Bromberger <jeb@debian.org>
