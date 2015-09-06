@@ -1,4 +1,4 @@
-gst-plugins-dvswitch (0.1.0-1) UNRELEASED; urgency=medium
+gst-plugins-dvswitch (0.1.1-1) unstable; urgency=medium
 
   * New upstream release.
     - Ported to gstreamer 1.0 (Closes: #785835)
@@ -17,7 +17,7 @@ gst-plugins-dvswitch (0.1.0-1) UNRELEASED; urgency=medium
   * Explicitly Build-Depend on libgstreamer1.0-dev, providing
     dh_gstscancodecs.
 
- -- Stefano Rivera <stefanor@debian.org>  Sat, 05 Sep 2015 17:09:38 -0700
+ -- Stefano Rivera <stefanor@debian.org>  Sat, 05 Sep 2015 19:15:46 -0700
 
 gstreamer1.0-dvswitch (0.0.1-1) unstable; urgency=low
 
