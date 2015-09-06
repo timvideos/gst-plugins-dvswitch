@@ -5,6 +5,7 @@ gst-plugins-dvswitch (0.1.0-1) UNRELEASED; urgency=medium
     - Rename source package to upstream's name, which doesn't include a
       gstreamer version.
     - Update copyright file.
+  * New maintainer (Closes: #798130)
   * Update watch file for GitHub UI changes.
   * Port to dh:
     - Bump compat level to 9 for multiarch.
