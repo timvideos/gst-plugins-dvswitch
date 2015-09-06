@@ -1,6 +1,7 @@
 gstreamer1.0-dvswitch (0.1.0-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Update watch file for GitHub UI changes.
 
  -- Stefano Rivera <stefanor@debian.org>  Sat, 05 Sep 2015 17:09:38 -0700
 
