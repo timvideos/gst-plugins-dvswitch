@@ -1,8 +1,22 @@
-Format: http://dep.debian.net/deps/dep5
-Upstream-Name: gst-dvswitch
-Source: https://github.com/timsvideo/gst-dvswitch
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: gst-plugins-dvswitch
+Source: https://github.com/timvideos/gst-plugins-dvswitch
+
 Files: *
-Copyright: 2012 Tim Ansell
+Copyright:
+ 2012-2015, Tim Ansell <mithro@mithis.com>,
+ 2012,      Michael Farrell <micolous@gmail.com>,
+ 2014,      Jan Schmidt <thaytan@noraisin.net>,
+ 2014,      Jannis Achstetter <kripton@kripserver.net>,
+ 2014,      Amanpreet Singh <aps.sids@gmail.com>
+License: GPL-2+
+
+Files: debian/*
+Copyright:
+ 2012, James Bromberger <jeb@debian.org>
+ 2015, Stefano Rivera <stefanor@debian.org>
+License: GPL-2+
+
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
