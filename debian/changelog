@@ -8,6 +8,7 @@ gst-plugins-dvswitch (0.1.0-1) UNRELEASED; urgency=medium
     - Bump compat level to 9 for multiarch.
   * Drop la file, from binary package. It's an unnecessary result of building
     a shared library with libtool.
+  * Use the substvars provided by dh_gstscancodecs.
 
  -- Stefano Rivera <stefanor@debian.org>  Sat, 05 Sep 2015 17:09:38 -0700
 
