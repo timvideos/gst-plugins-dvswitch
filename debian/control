@@ -1,15 +1,25 @@
-Source: gstreamer1.0-dvswitch
+Source: gst-plugins-dvswitch
 Section: libs
 Priority: extra
 Maintainer: James Bromberger <jeb@debian.org>
-Build-Depends: debhelper (>= 8.0.0), cdbs (>= 0.4.93), dh-autoreconf, libgstreamer-plugins-base1.0-dev
-Standards-Version: 3.9.3
+Build-Depends:
+ debhelper (>= 9.0.0),
+ dh-autoreconf,
+ libgstreamer-plugins-base1.0-dev,
+ libgstreamer1.0-dev
+Standards-Version: 3.9.6
 Homepage: https://github.com/timvideos/gst-plugins-dvswitch
+Vcs-Browser: https://github.com/timvideos/gst-plugins-dvswitch
+Vcs-Git: https://github.com/timvideos/gst-plugins-dvswitch
 
 Package: gstreamer1.0-dvswitch
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}, libgstreamer1.0-0 (>= 1.2.1)
+Depends: libgstreamer1.0-0 (>= 1.2.1), ${misc:Depends}, ${shlibs:Depends}
+Provides: ${gstreamer:Provides}
+XB-GStreamer-Version: ${gstreamer:Version}
+XB-GStreamer-Elements: ${gstreamer:Elements}
+XB-GStreamer-URI-Sources: ${gstreamer:URISources}
 Description: GStreamer plugin source from DVswitch
- gst-dvswitch is a GStreamer plugin for acquiring a DIF (DV) stream from a 
- dvswitch server. The plugin does not require dvswitch to be installed on 
+ gst-dvswitch is a GStreamer plugin for acquiring a DIF (DV) stream from a
+ dvswitch server. The plugin does not require dvswitch to be installed on
  the same machine.  This plugin borrows code quite heavily from udpsrc.

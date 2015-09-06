@@ -1,2 +1,3 @@
 version=3
-https://github.com/timsvideo/gst-dvswitch/tags .*/tarball/v(\d[\d\.]+)
+opts="filenamemangle=s/(?:.*?)?v?(\d[\d.]*)\.tar\.gz/gst-plugins-dvswitch-$1.tar.gz/" \
+https://github.com/timvideos/gst-plugins-dvswitch/tags (?:.*?/)?v?(\d[\d.]*)\.tar\.gz
