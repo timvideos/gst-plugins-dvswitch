@@ -4,7 +4,7 @@ gst-plugins-dvswitch (0.1.1-1) unstable; urgency=medium
     - Ported to gstreamer 1.0 (Closes: #785835)
     - Rename source package to upstream's name, which doesn't include a
       gstreamer version.
-    - Update copyright file.
+    - Update and correct license. Upstream's license is LGPL 2.1, not GPL 2.
   * New maintainer (Closes: #798130)
   * Update watch file for GitHub UI changes.
   * Port to dh:
