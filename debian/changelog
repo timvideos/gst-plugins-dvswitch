@@ -17,7 +17,7 @@ gst-plugins-dvswitch (0.1.1-1) unstable; urgency=medium
   * Explicitly Build-Depend on libgstreamer1.0-dev, providing
     dh_gstscancodecs.
 
- -- Stefano Rivera <stefanor@debian.org>  Sat, 05 Sep 2015 19:15:46 -0700
+ -- Stefano Rivera <stefanor@debian.org>  Sat, 07 Nov 2015 15:56:10 +0000
 
 gstreamer0.10-dvswitch (0.0.1-1) unstable; urgency=low
 
