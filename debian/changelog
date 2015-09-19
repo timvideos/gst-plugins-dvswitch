@@ -19,7 +19,7 @@ gst-plugins-dvswitch (0.1.1-1) unstable; urgency=medium
 
  -- Stefano Rivera <stefanor@debian.org>  Sat, 05 Sep 2015 19:15:46 -0700
 
-gstreamer1.0-dvswitch (0.0.1-1) unstable; urgency=low
+gstreamer0.10-dvswitch (0.0.1-1) unstable; urgency=low
 
   * Initial release (Closes: #673105)
 
